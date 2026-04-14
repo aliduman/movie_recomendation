@@ -15,6 +15,39 @@ import { db } from '../config/firebase';
 
 const SEEN_KEY = 'wizard_seen_guest';
 
+function readGuestHistory() {
+  return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');
+}
+
+function writeGuestHistory(history) {
+  localStorage.setItem(SEEN_KEY, JSON.stringify(history));
+}
+
+function upsertGuestRecommendation(movie, moodId, genreId) {
+  const movieId = String(movie.id);
+  const current = readGuestHistory();
+  const prev = current[movieId];
+  const nextCount = (prev?.recommendedCount || 0) + 1;
+
+  current[movieId] = {
+    movieId: movie.id,
+    title: movie.title,
+    poster_path: movie.poster_path || null,
+    recommendedCount: nextCount,
+    lastMoodId: moodId || null,
+    lastGenreId: genreId || null,
+    lastRecommendedAt: Date.now(),
+  };
+
+  writeGuestHistory(current);
+
+  return {
+    history: current,
+    wasRecommendedBefore: Boolean(prev),
+    recommendedCount: nextCount,
+  };
+}
+
 export const MOODS = [
   {
     id: 'happy',
@@ -99,19 +132,26 @@ export function useRecommendation() {
 
   useEffect(() => {
     if (!user) {
-      const guestHistory = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');
-      setHistoryMap(guestHistory);
+      setHistoryMap(readGuestHistory());
       return undefined;
     }
 
     const historyRef = collection(db, 'users', user.uid, 'recommendations');
-    const unsub = onSnapshot(historyRef, (snapshot) => {
-      const next = {};
-      snapshot.docs.forEach((item) => {
-        next[item.id] = item.data();
-      });
-      setHistoryMap(next);
-    });
+    const unsub = onSnapshot(
+      historyRef,
+      (snapshot) => {
+        const next = {};
+        snapshot.docs.forEach((item) => {
+          next[item.id] = item.data();
+        });
+        setHistoryMap(next);
+      },
+      (err) => {
+        // Firestore dinleme engellenirse sihirbazı guest modunda çalıştır.
+        console.warn('Recommendation history listener failed:', err?.code || err?.message);
+        setHistoryMap(readGuestHistory());
+      },
+    );
 
     return () => unsub();
   }, [user]);
@@ -126,52 +166,49 @@ export function useRecommendation() {
       const movieId = String(movie.id);
 
       if (!user) {
-        const current = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');
-        const prev = current[movieId];
-        const nextCount = (prev?.recommendedCount || 0) + 1;
-
-        current[movieId] = {
-          movieId: movie.id,
-          title: movie.title,
-          poster_path: movie.poster_path || null,
-          recommendedCount: nextCount,
-          lastMoodId: moodId || null,
-          lastGenreId: genreId || null,
-          lastRecommendedAt: Date.now(),
-        };
-
-        localStorage.setItem(SEEN_KEY, JSON.stringify(current));
-        setHistoryMap(current);
+        const guestMeta = upsertGuestRecommendation(movie, moodId, genreId);
+        setHistoryMap(guestMeta.history);
 
         return {
-          wasRecommendedBefore: Boolean(prev),
-          recommendedCount: nextCount,
+          wasRecommendedBefore: guestMeta.wasRecommendedBefore,
+          recommendedCount: guestMeta.recommendedCount,
         };
       }
 
-      const ref = doc(db, 'users', user.uid, 'recommendations', movieId);
-      const snap = await getDoc(ref);
-      const prevData = snap.exists() ? snap.data() : null;
-      const nextCount = (prevData?.recommendedCount || 0) + 1;
+      try {
+        const ref = doc(db, 'users', user.uid, 'recommendations', movieId);
+        const snap = await getDoc(ref);
+        const prevData = snap.exists() ? snap.data() : null;
+        const nextCount = (prevData?.recommendedCount || 0) + 1;
 
-      await setDoc(
-        ref,
-        {
-          movieId: movie.id,
-          title: movie.title,
-          poster_path: movie.poster_path || null,
+        await setDoc(
+          ref,
+          {
+            movieId: movie.id,
+            title: movie.title,
+            poster_path: movie.poster_path || null,
+            recommendedCount: nextCount,
+            lastMoodId: moodId || null,
+            lastGenreId: genreId || null,
+            lastRecommendedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
+
+        return {
+          wasRecommendedBefore: Boolean(prevData),
           recommendedCount: nextCount,
-          lastMoodId: moodId || null,
-          lastGenreId: genreId || null,
-          lastRecommendedAt: serverTimestamp(),
-        },
-        { merge: true },
-      );
-
-      return {
-        wasRecommendedBefore: Boolean(prevData),
-        recommendedCount: nextCount,
-      };
+        };
+      } catch (err) {
+        // Firestore yazma hatasında film önerisini düşürme, local fallback kullan.
+        console.warn('Recommendation persist failed, fallback guest history:', err?.code || err?.message);
+        const guestMeta = upsertGuestRecommendation(movie, moodId, genreId);
+        setHistoryMap(guestMeta.history);
+        return {
+          wasRecommendedBefore: guestMeta.wasRecommendedBefore,
+          recommendedCount: guestMeta.recommendedCount,
+        };
+      }
     },
     [user],
   );
@@ -183,9 +220,15 @@ export function useRecommendation() {
       return;
     }
 
-    const historyRef = collection(db, 'users', user.uid, 'recommendations');
-    const snapshot = await getDocs(historyRef);
-    await Promise.all(snapshot.docs.map((item) => deleteDoc(item.ref)));
+    try {
+      const historyRef = collection(db, 'users', user.uid, 'recommendations');
+      const snapshot = await getDocs(historyRef);
+      await Promise.all(snapshot.docs.map((item) => deleteDoc(item.ref)));
+    } catch (err) {
+      console.warn('Recommendation clear failed, clearing guest history instead:', err?.code || err?.message);
+      localStorage.removeItem(SEEN_KEY);
+      setHistoryMap({});
+    }
   }, [user]);
 
   const fetchRecommendation = useCallback(
@@ -252,8 +295,9 @@ export function useRecommendation() {
           _wasRecommendedBefore: recommendationMeta.wasRecommendedBefore,
           _recommendedCount: recommendationMeta.recommendedCount,
         });
-      } catch {
-        setError('Film yüklenirken bir hata oluştu. Bağlantını kontrol et.');
+      } catch (err) {
+        console.error('Recommendation fetch failed:', err?.code || err?.message);
+        setError('Film yüklenirken bir hata oluştu. Lütfen tekrar dene.');
       } finally {
         setLoading(false);
       }
