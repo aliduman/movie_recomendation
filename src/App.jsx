@@ -7,9 +7,11 @@ import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import ExplorePage from './pages/ExplorePage';
 import MovieDetailPage from './pages/MovieDetailPage';
+import ActorDetailPage from './pages/ActorDetailPage';
 import FavoritesPage from './pages/FavoritesPage';
 import LoginPage from './pages/LoginPage';
 import RecommendationWizard from './components/RecommendationWizard';
+import Footer from './components/Footer';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -21,7 +23,7 @@ export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-darker">
+    <div className="min-h-screen bg-darker flex flex-col">
       <Navbar />
       <Toaster
         position="top-right"
@@ -30,22 +32,27 @@ export default function App() {
         }}
       />
 
-      <AnimatePresence mode="wait">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/movie/:id" element={<MovieDetailPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/favorites"
-            element={
-              <ProtectedRoute>
-                <FavoritesPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </AnimatePresence>
+      <div className="flex-1">
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/movie/:id" element={<MovieDetailPage />} />
+            <Route path="/person/:id" element={<ActorDetailPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/favorites"
+              element={
+                <ProtectedRoute>
+                  <FavoritesPage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AnimatePresence>
+      </div>
+
+      <Footer />
 
       {/* Floating Wizard Button */}
       <motion.button

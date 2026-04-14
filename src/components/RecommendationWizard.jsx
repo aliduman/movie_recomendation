@@ -45,11 +45,11 @@ export default function RecommendationWizard({ onClose }) {
   const handleFetch = (genreId = null) => {
     setSelectedGenre(genreId);
     goTo(2);
-    fetchRecommendation(selectedMood.genres, genreId);
+    fetchRecommendation(selectedMood.genres, genreId, selectedMood.id);
   };
 
   const handleAnother = () => {
-    fetchRecommendation(selectedMood.genres, selectedGenre);
+    fetchRecommendation(selectedMood.genres, selectedGenre, selectedMood.id);
   };
 
   const handleReset = () => {
@@ -423,6 +423,12 @@ export default function RecommendationWizard({ onClose }) {
                       <h3 className="text-xl font-extrabold text-white leading-tight">
                         {result.title}
                       </h3>
+
+                      {result._wasRecommendedBefore && (
+                        <p className="text-xs text-amber-300 mt-1">
+                          Bu film daha once onerildi (toplam {result._recommendedCount} kez)
+                        </p>
+                      )}
 
                       <div className="flex items-center gap-3 mt-1.5 text-sm">
                         <span className="text-gray-500">

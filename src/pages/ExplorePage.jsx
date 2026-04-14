@@ -4,11 +4,26 @@ import GenreSelector from '../components/GenreSelector';
 import SearchBar from '../components/SearchBar';
 import MovieGrid from '../components/MovieGrid';
 import { useMovies, GENRES } from '../hooks/useMovies';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 export default function ExplorePage() {
   const [selectedGenre, setSelectedGenre] = useState(GENRES[0].id);
-  const { movies, loading, fetchByGenre, searchMovies } = useMovies();
+  const [autoLoadEnabled, setAutoLoadEnabled] = useState(false);
+  const {
+    movies,
+    loading,
+    loadingMore,
+    hasMore,
+    fetchByGenre,
+    searchMovies,
+    loadMore,
+  } = useMovies();
   const [isSearching, setIsSearching] = useState(false);
+
+  const sentinelRef = useInfiniteScroll({
+    enabled: autoLoadEnabled && hasMore && !loading && !loadingMore,
+    onLoadMore: loadMore,
+  });
 
   useEffect(() => {
     if (!isSearching) fetchByGenre(selectedGenre);
@@ -16,6 +31,7 @@ export default function ExplorePage() {
 
   const handleGenre = useCallback((id) => {
     setIsSearching(false);
+    setAutoLoadEnabled(false);
     setSelectedGenre(id);
   }, []);
 
@@ -23,13 +39,20 @@ export default function ExplorePage() {
     (query) => {
       if (!query) {
         setIsSearching(false);
+        setAutoLoadEnabled(false);
         return;
       }
       setIsSearching(true);
+      setAutoLoadEnabled(false);
       searchMovies(query);
     },
     [searchMovies],
   );
+
+  const startInfiniteScroll = () => {
+    setAutoLoadEnabled(true);
+    loadMore();
+  };
 
   return (
     <motion.div
@@ -52,7 +75,21 @@ export default function ExplorePage() {
         )}
       </div>
 
-      <MovieGrid movies={movies} loading={loading} />
+      <MovieGrid movies={movies} loading={loading} loadingMore={loadingMore} />
+
+      {hasMore && !autoLoadEnabled && (
+        <div className="flex justify-center pt-6">
+          <button
+            type="button"
+            onClick={startInfiniteScroll}
+            className="glass px-5 py-2 rounded-xl text-sm font-medium hover:bg-white/10 transition-colors"
+          >
+            Daha fazla film gör
+          </button>
+        </div>
+      )}
+
+      {hasMore && autoLoadEnabled && <div ref={sentinelRef} className="h-10" />}
     </motion.div>
   );
 }

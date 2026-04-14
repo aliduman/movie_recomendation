@@ -1,8 +1,19 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  serverTimestamp,
+  setDoc,
+} from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import tmdb from '../config/tmdb';
+import { db } from '../config/firebase';
 
-const SEEN_KEY = 'wizard_seen';
+const SEEN_KEY = 'wizard_seen_guest';
 
 export const MOODS = [
   {
@@ -84,37 +95,106 @@ export function useRecommendation() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [historyMap, setHistoryMap] = useState({});
 
-  const storageKey = user ? `${SEEN_KEY}_${user.uid}` : `${SEEN_KEY}_guest`;
+  useEffect(() => {
+    if (!user) {
+      const guestHistory = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');
+      setHistoryMap(guestHistory);
+      return undefined;
+    }
 
-  const getSeenIds = useCallback(
-    () => JSON.parse(localStorage.getItem(storageKey) || '[]'),
-    [storageKey],
+    const historyRef = collection(db, 'users', user.uid, 'recommendations');
+    const unsub = onSnapshot(historyRef, (snapshot) => {
+      const next = {};
+      snapshot.docs.forEach((item) => {
+        next[item.id] = item.data();
+      });
+      setHistoryMap(next);
+    });
+
+    return () => unsub();
+  }, [user]);
+
+  const seenIds = useMemo(
+    () => Object.keys(historyMap).map((id) => Number(id)),
+    [historyMap],
   );
 
-  const addSeen = useCallback(
-    (id) => {
-      const current = getSeenIds();
-      if (!current.includes(id)) {
-        localStorage.setItem(storageKey, JSON.stringify([...current, id]));
+  const registerRecommendation = useCallback(
+    async (movie, moodId, genreId) => {
+      const movieId = String(movie.id);
+
+      if (!user) {
+        const current = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');
+        const prev = current[movieId];
+        const nextCount = (prev?.recommendedCount || 0) + 1;
+
+        current[movieId] = {
+          movieId: movie.id,
+          title: movie.title,
+          poster_path: movie.poster_path || null,
+          recommendedCount: nextCount,
+          lastMoodId: moodId || null,
+          lastGenreId: genreId || null,
+          lastRecommendedAt: Date.now(),
+        };
+
+        localStorage.setItem(SEEN_KEY, JSON.stringify(current));
+        setHistoryMap(current);
+
+        return {
+          wasRecommendedBefore: Boolean(prev),
+          recommendedCount: nextCount,
+        };
       }
+
+      const ref = doc(db, 'users', user.uid, 'recommendations', movieId);
+      const snap = await getDoc(ref);
+      const prevData = snap.exists() ? snap.data() : null;
+      const nextCount = (prevData?.recommendedCount || 0) + 1;
+
+      await setDoc(
+        ref,
+        {
+          movieId: movie.id,
+          title: movie.title,
+          poster_path: movie.poster_path || null,
+          recommendedCount: nextCount,
+          lastMoodId: moodId || null,
+          lastGenreId: genreId || null,
+          lastRecommendedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+
+      return {
+        wasRecommendedBefore: Boolean(prevData),
+        recommendedCount: nextCount,
+      };
     },
-    [storageKey, getSeenIds],
+    [user],
   );
 
-  const clearSeen = useCallback(() => {
-    localStorage.removeItem(storageKey);
-  }, [storageKey]);
+  const clearSeen = useCallback(async () => {
+    if (!user) {
+      localStorage.removeItem(SEEN_KEY);
+      setHistoryMap({});
+      return;
+    }
+
+    const historyRef = collection(db, 'users', user.uid, 'recommendations');
+    const snapshot = await getDocs(historyRef);
+    await Promise.all(snapshot.docs.map((item) => deleteDoc(item.ref)));
+  }, [user]);
 
   const fetchRecommendation = useCallback(
-    async (moodGenres, extraGenreId = null) => {
+    async (moodGenres, extraGenreId = null, moodId = null) => {
       setLoading(true);
       setError(null);
       setResult(null);
 
       try {
-        let seenIds = getSeenIds();
-
         // Genre: extraGenreId varsa onu, yoksa mood'dan rastgele biri
         const primaryGenre =
           extraGenreId ||
@@ -142,10 +222,8 @@ export function useRecommendation() {
           available = data.results.filter((m) => !seenIds.includes(m.id));
         }
 
-        // Hâlâ yoksa görülmüş listeyi sıfırla, tekrar dene
+        // Hâlâ yoksa eski önerilere de izin ver.
         if (available.length === 0) {
-          clearSeen();
-          seenIds = [];
           const { data } = await tmdb.get('/discover/movie', {
             params: {
               with_genres: primaryGenre,
@@ -163,22 +241,31 @@ export function useRecommendation() {
         }
 
         const pick = available[Math.floor(Math.random() * available.length)];
-        addSeen(pick.id);
-        setResult(pick);
+        const recommendationMeta = await registerRecommendation(
+          pick,
+          moodId,
+          primaryGenre,
+        );
+
+        setResult({
+          ...pick,
+          _wasRecommendedBefore: recommendationMeta.wasRecommendedBefore,
+          _recommendedCount: recommendationMeta.recommendedCount,
+        });
       } catch {
         setError('Film yüklenirken bir hata oluştu. Bağlantını kontrol et.');
       } finally {
         setLoading(false);
       }
     },
-    [getSeenIds, addSeen, clearSeen],
+    [registerRecommendation, seenIds],
   );
 
   return {
     result,
     loading,
     error,
-    seenCount: getSeenIds().length,
+    seenCount: seenIds.length,
     fetchRecommendation,
     clearSeen,
   };

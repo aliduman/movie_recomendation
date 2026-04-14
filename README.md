@@ -8,6 +8,8 @@ TMDB API'den beslenen, interaktif animasyonlu, Google Auth destekli film keşif 
 - 🎯 Türe (genre) göre keşif — Aksiyon, Komedi, Dram, Korku vb.
 - 🔍 Film arama
 - 📄 Detaylı film sayfası (oyuncular, fragman, benzer filmler)
+- 📺 Film izleme platformları (TMDB watch providers)
+- 🎭 Oyuncu detay sayfası (biyografi + bilinen filmler)
 - ❤️ Favorilere ekleme (kullanıcı bazlı)
 - 🔐 Google ile giriş (Firebase Auth)
 - ✨ Framer Motion ile akıcı animasyonlar
@@ -38,6 +40,22 @@ npm run dev
 2. Authentication → Sign-in method → Google'ı etkinleştir
 3. Project Settings → Your apps → Web app ekle
 4. Config değerlerini `.env` dosyasına kopyala
+5. Firestore Database oluştur (Production veya test modunda)
+
+### Firestore kurali (kullanici bazli veri)
+
+Favoriler ve öneri geçmişi `users/{uid}` altında tutulur. Aşağıdaki kural, kullanıcının sadece kendi verisine erişmesini sağlar:
+
+```txt
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
 
 ## Teknoloji
 

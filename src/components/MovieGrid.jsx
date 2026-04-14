@@ -6,15 +6,18 @@ const containerVariants = {
   visible: { transition: { staggerChildren: 0.04 } },
 };
 
-export default function MovieGrid({ movies, loading }) {
+const GRID_CLASSES = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4';
+
+function SkeletonCard({ className = '' }) {
+  return <div className={`aspect-[2/3] rounded-2xl bg-dark animate-pulse skeleton-shimmer ${className}`} />;
+}
+
+export default function MovieGrid({ movies, loading, loadingMore = false }) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className={GRID_CLASSES}>
         {Array.from({ length: 10 }).map((_, i) => (
-          <div
-            key={i}
-            className="aspect-[2/3] rounded-2xl bg-dark animate-pulse"
-          />
+          <SkeletonCard key={i} />
         ))}
       </div>
     );
@@ -34,16 +37,28 @@ export default function MovieGrid({ movies, loading }) {
   }
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-    >
-      {movies.map((movie, i) => (
-        <MovieCard key={movie.id} movie={movie} index={i} />
-      ))}
-    </motion.div>
+    <>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className={GRID_CLASSES}
+      >
+        {movies.map((movie, i) => (
+          <MovieCard key={movie.id} movie={movie} index={i} />
+        ))}
+      </motion.div>
+
+      {loadingMore && (
+        <div className={`pt-6 ${GRID_CLASSES}`}>
+          <SkeletonCard />
+          <SkeletonCard className="hidden sm:block" />
+          <SkeletonCard className="hidden md:block" />
+          <SkeletonCard className="hidden lg:block" />
+          <SkeletonCard className="hidden lg:block" />
+        </div>
+      )}
+    </>
   );
 }
 

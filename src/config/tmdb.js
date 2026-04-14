@@ -11,6 +11,8 @@ const tmdb = axios.create({
 export const IMG_BASE = 'https://image.tmdb.org/t/p';
 export const backdrop = (path) => (path ? `${IMG_BASE}/original${path}` : null);
 export const poster = (path) => (path ? `${IMG_BASE}/w500${path}` : null);
+export const profile = (path) => (path ? `${IMG_BASE}/w300${path}` : null);
+export const providerLogo = (path) => (path ? `${IMG_BASE}/w92${path}` : null);
 
 export default tmdb;
 
