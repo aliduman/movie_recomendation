@@ -4,7 +4,7 @@ import { useFavorites } from '../hooks/useFavorites';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function FavoritesPage() {
-  const { favorites } = useFavorites();
+  const { favorites, loading } = useFavorites();
   const { user } = useAuth();
 
   return (
@@ -25,7 +25,11 @@ export default function FavoritesPage() {
         </p>
       </div>
 
-      {favorites.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      ) : favorites.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}

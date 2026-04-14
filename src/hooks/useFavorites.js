@@ -17,6 +17,7 @@ const GUEST_KEY = 'movie_favorites_guest';
 export function useFavorites() {
   const { user } = useAuth();
   const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const readGuestFavorites = useCallback(() => {
     return JSON.parse(localStorage.getItem(GUEST_KEY) || '[]');
@@ -30,25 +31,38 @@ export function useFavorites() {
   useEffect(() => {
     if (!user) {
       setFavorites(readGuestFavorites());
+      setLoading(false);
       return undefined;
     }
+
+    setLoading(true);
 
     // Eski localStorage verisini tek seferlik Firestore'a taşır.
     const legacyKey = `movie_favorites_${user.uid}`;
     const legacy = JSON.parse(localStorage.getItem(legacyKey) || '[]');
-    if (legacy.length > 0) {
-      legacy.forEach((movie) => {
-        const ref = doc(db, 'users', user.uid, 'favorites', String(movie.id));
-        setDoc(
-          ref,
-          {
-            ...movie,
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true },
-        );
+    const guest = readGuestFavorites();
+    const toMigrate = [...legacy, ...guest];
+
+    if (toMigrate.length > 0) {
+      Promise.all(
+        toMigrate.map((movie) => {
+          const ref = doc(db, 'users', user.uid, 'favorites', String(movie.id));
+          return setDoc(
+            ref,
+            {
+              id: movie.id,
+              title: movie.title,
+              poster_path: movie.poster_path,
+              vote_average: movie.vote_average,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true },
+          );
+        }),
+      ).finally(() => {
+        localStorage.removeItem(legacyKey);
+        localStorage.removeItem(GUEST_KEY);
       });
-      localStorage.removeItem(legacyKey);
     }
 
     const favoritesRef = collection(db, 'users', user.uid, 'favorites');
@@ -62,14 +76,16 @@ export function useFavorites() {
           ...item.data(),
         }));
         setFavorites(list);
+        setLoading(false);
       },
       () => {
         setFavorites([]);
+        setLoading(false);
       },
     );
 
     return () => unsub();
-  }, [db, readGuestFavorites, user]);
+  }, [readGuestFavorites, user]);
 
   const toggleFavorite = useCallback(
     async (movie) => {
@@ -105,11 +121,11 @@ export function useFavorites() {
         });
       }
     },
-    [db, favorites, user, writeGuestFavorites],
+    [favorites, user, writeGuestFavorites],
   );
 
   const isFavorite = (id) => favorites.some((f) => f.id === id);
 
-  return { favorites, toggleFavorite, isFavorite };
+  return { favorites, loading, toggleFavorite, isFavorite };
 }
 

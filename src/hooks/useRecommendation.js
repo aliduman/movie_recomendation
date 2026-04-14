@@ -147,9 +147,9 @@ export function useRecommendation() {
         setHistoryMap(next);
       },
       (err) => {
-        // Firestore dinleme engellenirse sihirbazı guest modunda çalıştır.
+        // Giriş yapan kullanıcıda kaynak Firestore'dur; hata durumunda geçmiş boş görünür.
         console.warn('Recommendation history listener failed:', err?.code || err?.message);
-        setHistoryMap(readGuestHistory());
+        setHistoryMap({});
       },
     );
 
@@ -200,13 +200,11 @@ export function useRecommendation() {
           recommendedCount: nextCount,
         };
       } catch (err) {
-        // Firestore yazma hatasında film önerisini düşürme, local fallback kullan.
-        console.warn('Recommendation persist failed, fallback guest history:', err?.code || err?.message);
-        const guestMeta = upsertGuestRecommendation(movie, moodId, genreId);
-        setHistoryMap(guestMeta.history);
+        // Film önerisini düşürmeden devam et; ancak geçmiş Firestore'a yazılamadı.
+        console.warn('Recommendation persist failed:', err?.code || err?.message);
         return {
-          wasRecommendedBefore: guestMeta.wasRecommendedBefore,
-          recommendedCount: guestMeta.recommendedCount,
+          wasRecommendedBefore: false,
+          recommendedCount: 1,
         };
       }
     },
@@ -225,9 +223,7 @@ export function useRecommendation() {
       const snapshot = await getDocs(historyRef);
       await Promise.all(snapshot.docs.map((item) => deleteDoc(item.ref)));
     } catch (err) {
-      console.warn('Recommendation clear failed, clearing guest history instead:', err?.code || err?.message);
-      localStorage.removeItem(SEEN_KEY);
-      setHistoryMap({});
+      console.warn('Recommendation clear failed:', err?.code || err?.message);
     }
   }, [user]);
 
