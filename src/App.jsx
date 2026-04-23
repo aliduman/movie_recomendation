@@ -55,21 +55,38 @@ export default function App() {
       <Footer />
 
       {/* Floating Wizard Button */}
-      <motion.button
+      <motion.div
+        className="fixed bottom-6 right-6 z-50"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.6, type: 'spring', stiffness: 300, damping: 20 }}
-        whileHover={{ scale: 1.12, rotate: 8 }}
-        whileTap={{ scale: 0.92 }}
-        onClick={() => setWizardOpen(true)}
-        title="Film Sihirbazı"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-2xl shadow-primary/40"
-        style={{
-          background: 'linear-gradient(135deg, #6D28D9 0%, #9333EA 100%)',
-        }}
       >
-        🪄
-      </motion.button>
+        <motion.button
+          animate={{
+            boxShadow: [
+              '0 8px 24px rgba(124, 58, 237, 0.5)',
+              '0 8px 40px rgba(192, 38, 211, 0.8)',
+              '0 8px 24px rgba(124, 58, 237, 0.5)',
+            ],
+          }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          whileHover={{ scale: 1.06, y: -3 }}
+          whileTap={{ scale: 0.94 }}
+          onClick={() => setWizardOpen(true)}
+          title="Bana Film Bul"
+          className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl text-white font-bold text-sm tracking-wide"
+          style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #C026D3 100%)' }}
+        >
+          <motion.span
+            animate={{ rotate: [0, -15, 15, -10, 10, 0] }}
+            transition={{ delay: 2, duration: 0.6, repeat: Infinity, repeatDelay: 4 }}
+            className="text-xl"
+          >
+            🍿
+          </motion.span>
+          <span>Bana Film Bul!</span>
+        </motion.button>
+      </motion.div>
 
       {/* Wizard Modal */}
       <AnimatePresence>
