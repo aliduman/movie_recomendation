@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "Bash(firebase *)"
+      "Bash(firebase *)",
+      "Bash(mkdir functions *)",
+      "Bash(npm init *)"
     ]
   }
 }

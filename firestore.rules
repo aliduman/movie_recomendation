@@ -13,6 +13,7 @@ service cloud.firestore {
     match /movies/{movieId}/chat/{messageId} {
       allow read: if true;
       allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.uid;
     }
 
     // Film yorumları
@@ -32,6 +33,14 @@ service cloud.firestore {
       }
 
       match /recommendations/{movieId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /chatParticipation/{movieId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /settings/{doc} {
         allow read, write: if isOwner(userId);
       }
     }

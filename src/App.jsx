@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
+import { useChatNotifications } from './hooks/useChatNotifications';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import ExplorePage from './pages/ExplorePage';
@@ -19,6 +20,25 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" />;
 }
 
+function ChatNotifier() {
+  const { unreadRooms } = useChatNotifications();
+  const notifiedRef = useEffect(() => {}, []); // mount tracker
+  const shownRef = useState(false);
+
+  useEffect(() => {
+    if (!unreadRooms.length || shownRef[0]) return;
+    shownRef[1](true);
+    unreadRooms.forEach((room) => {
+      toast(`💬 "${room.movieTitle}" sohbetinde ${room.count} yeni mesaj var!`, {
+        duration: 6000,
+        icon: '🎬',
+      });
+    });
+  }, [unreadRooms]);
+
+  return null;
+}
+
 export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -32,6 +52,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-darker flex flex-col">
       <Navbar />
+      <ChatNotifier />
       <Toaster
         position="top-right"
         toastOptions={{

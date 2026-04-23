@@ -2,18 +2,22 @@ import { useState, useEffect, useRef } from 'react';
 import {
   collection,
   addDoc,
+  deleteDoc,
+  updateDoc,
+  setDoc,
   onSnapshot,
   orderBy,
   query,
   limit,
   serverTimestamp,
+  doc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 const LAST_SEEN_KEY = (movieId) => `chat_last_seen_${movieId}`;
 
-export function useChat(movieId) {
+export function useChat(movieId, movieTitle) {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [unread, setUnread] = useState(0);
@@ -62,7 +66,24 @@ export function useChat(movieId) {
       text: text.trim(),
       createdAt: serverTimestamp(),
     });
+    // Katılım kaydı — bildirim ve e-posta için
+    await setDoc(
+      doc(db, 'users', user.uid, 'chatParticipation', String(movieId)),
+      { movieId: String(movieId), movieTitle: movieTitle || '', email: user.email, lastMessageAt: serverTimestamp() },
+      { merge: true },
+    );
   };
 
-  return { messages, unread, loading, sendMessage, markSeen, closeSeen };
+  const deleteMessage = async (messageId) => {
+    await deleteDoc(doc(db, 'movies', String(movieId), 'chat', messageId));
+  };
+
+  const updateMessage = async (messageId, text) => {
+    await updateDoc(doc(db, 'movies', String(movieId), 'chat', messageId), {
+      text: text.trim(),
+      editedAt: serverTimestamp(),
+    });
+  };
+
+  return { messages, unread, loading, sendMessage, markSeen, closeSeen, deleteMessage, updateMessage };
 }
