@@ -3,4 +3,4 @@ dist/
 .env
 .idea/
 .idea/workspace.xml
-
+.env.example
