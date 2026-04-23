@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
@@ -42,6 +42,8 @@ function ChatNotifier() {
 export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const location = useLocation();
+  const isDetailPage = /^\/movie\//.test(location.pathname);
 
   useEffect(() => {
     const handler = (e) => setChatOpen(e.detail.open);
@@ -85,7 +87,7 @@ export default function App() {
       {/* Floating Wizard Button */}
       <motion.div
         layout
-        className={`fixed bottom-6 z-50 ${chatOpen ? 'right-[22.125rem]' : 'right-[14.625rem]'}`}
+        className={`fixed bottom-6 z-50 ${isDetailPage ? (chatOpen ? 'right-[22.125rem]' : 'right-[14.625rem]') : 'right-6'}`}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 26 }}

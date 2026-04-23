@@ -4,7 +4,10 @@
       "Bash(npm install *)",
       "Bash(firebase *)",
       "Bash(mkdir functions *)",
-      "Bash(npm init *)"
+      "Bash(npm init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: add GitHub Actions daily chat digest email *)",
+      "Bash(git push *)"
     ]
   }
 }

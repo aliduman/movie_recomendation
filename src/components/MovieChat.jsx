@@ -89,8 +89,19 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
   const { user } = useAuth();
   const { messages, loading, sendMessage, markSeen, closeSeen, deleteMessage, updateMessage } = useChat(movieId, movieTitle);
   const [text, setText] = useState('');
+  const [vpHeight, setVpHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setVpHeight(vv.height);
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
+  }, [isMobile]);
 
   useEffect(() => {
     markSeen();
@@ -111,12 +122,13 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
   };
 
   const panelClass = isMobile
-    ? 'fixed inset-0 z-[60] flex flex-col bg-[#111]'
+    ? 'fixed top-0 left-0 right-0 z-[60] flex flex-col bg-[#111]'
     : 'flex flex-col w-80 h-[480px] bg-[#141414] rounded-2xl shadow-2xl border border-white/10 overflow-hidden';
 
   return (
     <motion.div
       className={panelClass}
+      style={isMobile ? { height: vpHeight } : undefined}
       initial={isMobile ? { y: '100%' } : { opacity: 0, scale: 0.95, y: 20 }}
       animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
       exit={isMobile ? { y: '100%' } : { opacity: 0, scale: 0.95, y: 20 }}
