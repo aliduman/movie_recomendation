@@ -8,6 +8,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,5 +46,12 @@ export function useComments(movieId) {
     await deleteDoc(doc(db, 'movies', String(movieId), 'comments', commentId));
   };
 
-  return { comments, loading, addComment, deleteComment };
+  const updateComment = async (commentId, text) => {
+    await updateDoc(doc(db, 'movies', String(movieId), 'comments', commentId), {
+      text: text.trim(),
+      editedAt: serverTimestamp(),
+    });
+  };
+
+  return { comments, loading, addComment, deleteComment, updateComment };
 }

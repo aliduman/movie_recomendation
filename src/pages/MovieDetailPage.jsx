@@ -8,6 +8,7 @@ import { backdrop, poster, profile } from '../config/tmdb';
 import MovieCard from '../components/MovieCard';
 import WatchProvidersModal from '../components/WatchProvidersModal';
 import MovieComments from '../components/MovieComments';
+import MovieChat from '../components/MovieChat';
 
 export default function MovieDetailPage() {
   const { id } = useParams();
@@ -172,6 +173,8 @@ export default function MovieDetailPage() {
       <AnimatePresence>
         {watchOpen && <WatchProvidersModal movie={movie} onClose={() => setWatchOpen(false)} />}
       </AnimatePresence>
+
+      <MovieChat movieId={movie.id} movieTitle={movie.title} />
 
       <AnimatePresence>
         {trailerOpen && trailer && (

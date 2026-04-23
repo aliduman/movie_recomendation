@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -21,6 +21,13 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => setChatOpen(e.detail.open);
+    window.addEventListener('chatToggle', handler);
+    return () => window.removeEventListener('chatToggle', handler);
+  }, []);
 
   return (
     <div className="min-h-screen bg-darker flex flex-col">
@@ -56,10 +63,11 @@ export default function App() {
 
       {/* Floating Wizard Button */}
       <motion.div
-        className="fixed bottom-6 right-6 z-50"
+        layout
+        className={`fixed bottom-6 z-50 ${chatOpen ? 'right-[22.125rem]' : 'right-[14.625rem]'}`}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.6, type: 'spring', stiffness: 300, damping: 20 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 26 }}
       >
         <motion.button
           animate={{

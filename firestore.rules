@@ -9,10 +9,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Film sohbet odası
+    match /movies/{movieId}/chat/{messageId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+    }
+
     // Film yorumları
     match /movies/{movieId}/comments/{commentId} {
       allow read: if true;
       allow create: if isSignedIn();
+      allow update: if isSignedIn() && request.auth.uid == resource.data.uid;
       allow delete: if isSignedIn() && request.auth.uid == resource.data.uid;
     }
 
