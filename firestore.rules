@@ -9,6 +9,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Film yorumları
+    match /movies/{movieId}/comments/{commentId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.uid;
+    }
+
     // User-scoped app data
     match /users/{userId} {
       allow read, write: if isOwner(userId);
