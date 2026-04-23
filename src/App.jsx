@@ -14,6 +14,7 @@ import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import RecommendationWizard from './components/RecommendationWizard';
 import Footer from './components/Footer';
+import { useFCM } from './hooks/useFCM';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -45,6 +46,7 @@ export default function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const location = useLocation();
   const isDetailPage = /^\/movie\//.test(location.pathname);
+  useFCM();
 
   useEffect(() => {
     const handler = (e) => setChatOpen(e.detail.open);

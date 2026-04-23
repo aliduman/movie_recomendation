@@ -1,6 +1,8 @@
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
+const { getMessaging } = require('firebase-admin/messaging');
 const nodemailer = require('nodemailer');
 
 initializeApp();
@@ -88,3 +90,91 @@ exports.dailyChatDigest = onSchedule('0 6 * * *', async () => {
     });
   }
 });
+
+// ── Yardımcı: kullanıcının FCM tokenlarını al ve bildirim gönder ──
+async function sendPush(uid, notification, data = {}) {
+  const tokensSnap = await db.collection(`users/${uid}/fcmTokens`).get();
+  if (tokensSnap.empty) return;
+
+  const tokens = tokensSnap.docs.map((d) => d.data().token).filter(Boolean);
+  if (!tokens.length) return;
+
+  const messaging = getMessaging();
+  const expired = [];
+
+  await Promise.all(
+    tokens.map((token) =>
+      messaging.send({ token, notification, data, webpush: { fcmOptions: { link: data.url || '/' } } })
+        .catch((err) => {
+          if (err.code === 'messaging/registration-token-not-registered') expired.push(token);
+        })
+    )
+  );
+
+  // Süresi dolmuş tokenleri sil
+  await Promise.all(expired.map((t) => db.doc(`users/${uid}/fcmTokens/${t}`).delete()));
+}
+
+// ── Yeni takipçi bildirimi ──
+exports.onNewFollower = onDocumentCreated(
+  'users/{userId}/followers/{followerUid}',
+  async (event) => {
+    const { userId, followerUid } = event.params;
+    if (userId === followerUid) return;
+
+    const follower = event.data?.data() || {};
+    await sendPush(
+      userId,
+      { title: 'Yeni Takipçi 🎬', body: `${follower.displayName || 'Biri'} seni takip etmeye başladı.` },
+      { url: `/profile/${followerUid}` },
+    );
+  }
+);
+
+// ── Yeni DM bildirimi ──
+exports.onNewDM = onDocumentCreated(
+  'dms/{dmId}/messages/{messageId}',
+  async (event) => {
+    const msg = event.data?.data();
+    if (!msg) return;
+
+    const { dmId } = event.params;
+    const [uid1, uid2] = dmId.split('_');
+    const recipientUid = msg.uid === uid1 ? uid2 : uid1;
+
+    await sendPush(
+      recipientUid,
+      { title: `${msg.displayName || 'Biri'} mesaj gönderdi 💬`, body: msg.text?.slice(0, 100) || '' },
+      { url: `/profile/${msg.uid}` },
+    );
+  }
+);
+
+// ── Film chat bildirimi (katılımcılara) ──
+exports.onNewChatMessage = onDocumentCreated(
+  'movies/{movieId}/chat/{messageId}',
+  async (event) => {
+    const msg = event.data?.data();
+    if (!msg) return;
+
+    const { movieId } = event.params;
+
+    // Bu filmde katılımcı olan kullanıcıları bul
+    const participantsSnap = await db.collectionGroup('chatParticipation')
+      .where('movieId', '==', movieId)
+      .get();
+
+    await Promise.all(
+      participantsSnap.docs
+        .filter((d) => d.ref.parent.parent.id !== msg.uid)
+        .map((d) => {
+          const uid = d.ref.parent.parent.id;
+          return sendPush(
+            uid,
+            { title: `${msg.displayName} yazdı 🍿`, body: msg.text?.slice(0, 100) || '' },
+            { url: `/movie/${movieId}` },
+          );
+        })
+    );
+  }
+);

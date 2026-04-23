@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { notifyChat } from '../utils/notify';
 
 const LAST_SEEN_KEY = (movieId) => `chat_last_seen_${movieId}`;
 
@@ -72,6 +73,7 @@ export function useChat(movieId, movieTitle) {
       { movieId: String(movieId), movieTitle: movieTitle || '', email: user.email, lastMessageAt: serverTimestamp() },
       { merge: true },
     );
+    notifyChat(String(movieId), text.trim());
   };
 
   const deleteMessage = async (messageId) => {
