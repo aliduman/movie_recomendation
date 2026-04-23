@@ -87,7 +87,7 @@ export default function App() {
       {/* Floating Wizard Button */}
       <motion.div
         layout
-        className={`fixed bottom-6 z-50 ${isDetailPage ? (chatOpen ? 'right-[22.125rem]' : 'right-[14.625rem]') : 'right-6'}`}
+        className={`fixed z-50 ${isDetailPage ? `bottom-24 sm:bottom-6 ${chatOpen ? 'right-[22.125rem]' : 'right-4 sm:right-[14.625rem]'}` : 'bottom-6 right-6'}`}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 26 }}
@@ -115,7 +115,7 @@ export default function App() {
           >
             🍿
           </motion.span>
-          <span>Bana Film Bul!</span>
+          <span className="whitespace-nowrap">Bana Film Bul!</span>
         </motion.button>
       </motion.div>
 

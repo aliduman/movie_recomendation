@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,6 +9,7 @@ import {
   FiExternalLink,
   FiTrash2,
   FiStar,
+  FiChevronLeft,
 } from 'react-icons/fi';
 import { useRecommendation, MOODS } from '../hooks/useRecommendation';
 import { GENRES } from '../hooks/useMovies';
@@ -27,9 +28,23 @@ export default function RecommendationWizard({ onClose }) {
   const [direction, setDirection] = useState(1);
   const [selectedMood, setSelectedMood] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
 
   const { result, loading, error, seenCount, fetchRecommendation, clearSeen } =
     useRecommendation();
+
+  useEffect(() => {
+    if (!result || loading) return;
+    setHistory((prev) => {
+      if (prev.length > 0 && prev[prev.length - 1].id === result.id) return prev;
+      const next = [...prev, result];
+      setHistoryIndex(next.length - 1);
+      return next;
+    });
+  }, [result, loading]);
+
+  const displayResult = historyIndex >= 0 ? history[historyIndex] : null;
 
   const goTo = (next) => {
     setDirection(next > step ? 1 : -1);
@@ -55,6 +70,8 @@ export default function RecommendationWizard({ onClose }) {
   const handleReset = () => {
     setSelectedMood(null);
     setSelectedGenre(null);
+    setHistory([]);
+    setHistoryIndex(-1);
     goTo(0);
   };
 
@@ -368,8 +385,9 @@ export default function RecommendationWizard({ onClose }) {
                 )}
 
                 {/* Film result */}
-                {result && !loading && (
+                {displayResult && !loading && (
                   <motion.div
+                    key={displayResult.id}
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
@@ -382,10 +400,10 @@ export default function RecommendationWizard({ onClose }) {
                       transition={{ delay: 0.1 }}
                       className="flex-shrink-0 mx-auto sm:mx-0"
                     >
-                      {result.poster_path ? (
+                      {displayResult.poster_path ? (
                         <img
-                          src={poster(result.poster_path)}
-                          alt={result.title}
+                          src={poster(displayResult.poster_path)}
+                          alt={displayResult.title}
                           className="w-36 rounded-2xl shadow-2xl shadow-primary/20"
                         />
                       ) : (
@@ -413,73 +431,98 @@ export default function RecommendationWizard({ onClose }) {
                         >
                           {selectedMood?.emoji} {selectedMood?.label}
                         </span>
-                        {seenCount > 0 && (
+                        {history.length > 0 && (
                           <span className="text-[11px] text-gray-600">
-                            #{seenCount} öneri
+                            #{historyIndex + 1} öneri
                           </span>
                         )}
                       </div>
 
                       <h3 className="text-xl font-extrabold text-white leading-tight">
-                        {result.title}
+                        {displayResult.title}
                       </h3>
 
-                      {result._wasRecommendedBefore && (
+                      {displayResult._wasRecommendedBefore && (
                         <p className="text-xs text-amber-300 mt-1">
-                          Bu film daha once onerildi (toplam {result._recommendedCount} kez)
+                          Bu film daha once onerildi (toplam {displayResult._recommendedCount} kez)
                         </p>
                       )}
 
                       <div className="flex items-center gap-3 mt-1.5 text-sm">
                         <span className="text-gray-500">
-                          {result.release_date?.slice(0, 4)}
+                          {displayResult.release_date?.slice(0, 4)}
                         </span>
                         <span className="flex items-center gap-1 text-secondary">
                           <FiStar className="fill-secondary" size={13} />
-                          {result.vote_average?.toFixed(1)}
+                          {displayResult.vote_average?.toFixed(1)}
                         </span>
                       </div>
 
                       <p className="text-sm text-gray-400 mt-3 leading-relaxed line-clamp-4">
-                        {result.overview || 'Açıklama mevcut değil.'}
+                        {displayResult.overview || 'Açıklama mevcut değil.'}
                       </p>
 
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2 mt-5">
-                        <motion.button
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
-                          onClick={handleAnother}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-300 hover:text-white transition-colors"
-                          style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                          }}
+                      {/* Detaya Git - film bilgisinin hemen altında */}
+                      <motion.div className="mt-4" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+                        <Link
+                          to={`/movie/${displayResult.id}`}
+                          onClick={onClose}
+                          className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-primary to-purple-500 hover:opacity-90 rounded-xl text-sm font-bold shadow-lg shadow-primary/30 transition-opacity"
                         >
-                          <FiRefreshCw size={14} /> Başka Film
-                        </motion.button>
+                          <FiExternalLink size={15} /> Detaya Git
+                        </Link>
+                      </motion.div>
 
-                        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                          <Link
-                            to={`/movie/${result.id}`}
-                            onClick={onClose}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-primary to-purple-500 hover:opacity-90 rounded-xl text-sm font-semibold shadow-lg shadow-primary/30 transition-opacity"
+                      {/* Alt aksiyonlar */}
+                      <div className="flex flex-col gap-2 mt-2.5">
+                        {/* Navigasyon satırı */}
+                        <div className="flex items-center gap-2">
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => setHistoryIndex((i) => i - 1)}
+                            disabled={historyIndex <= 0}
+                            className="flex items-center gap-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
                           >
-                            <FiExternalLink size={14} /> Detaya Git
-                          </Link>
-                        </motion.div>
+                            <FiChevronLeft size={16} /> Önceki
+                          </motion.button>
 
-                        <motion.button
-                          whileTap={{ scale: 0.97 }}
-                          onClick={handleReset}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-gray-500 hover:text-white transition-colors"
-                          style={{
-                            background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                          }}
-                        >
-                          <FiArrowLeft size={14} /> Yeni Arama
-                        </motion.button>
+                          <span className="text-xs text-gray-500 flex-1 text-center font-medium">
+                            {history.length > 0 ? `${historyIndex + 1} / ${history.length}` : ''}
+                          </span>
+
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => setHistoryIndex((i) => i + 1)}
+                            disabled={historyIndex >= history.length - 1}
+                            className="flex items-center gap-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                          >
+                            Sonraki <FiArrowRight size={16} />
+                          </motion.button>
+                        </div>
+
+                        {/* Yeni Öneri + Yeni Arama */}
+                        <div className="flex gap-2">
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleAnother}
+                            disabled={loading}
+                            className="flex items-center justify-center gap-1.5 flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-200 hover:text-white disabled:opacity-50 transition-colors"
+                            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                          >
+                            <FiRefreshCw size={14} /> Yeni Öneri
+                          </motion.button>
+
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleReset}
+                            className="flex items-center justify-center gap-1.5 flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                          >
+                            <FiArrowLeft size={14} /> Yeni Arama
+                          </motion.button>
+                        </div>
                       </div>
                     </motion.div>
                   </motion.div>

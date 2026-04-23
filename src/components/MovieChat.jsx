@@ -90,6 +90,7 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
   const { messages, loading, sendMessage, markSeen, closeSeen, deleteMessage, updateMessage } = useChat(movieId, movieTitle);
   const [text, setText] = useState('');
   const [vpHeight, setVpHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
+  const [vpTop, setVpTop] = useState(() => window.visualViewport?.offsetTop ?? 0);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -97,27 +98,48 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
     if (!isMobile) return;
     const vv = window.visualViewport;
     if (!vv) return;
-    const update = () => setVpHeight(vv.height);
+    let prevHeight = vv.height;
+    const update = () => {
+      const shrinking = vv.height < prevHeight;
+      prevHeight = vv.height;
+      setVpHeight(vv.height);
+      setVpTop(vv.offsetTop);
+      if (shrinking) {
+        requestAnimationFrame(() => {
+          if (messagesRef.current) {
+            messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+          }
+        });
+      }
+    };
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
     return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
   }, [isMobile]);
+
+  const messagesRef = useRef(null);
 
   useEffect(() => {
     if (!isMobile) return;
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
+    const prevent = (e) => {
+      if (messagesRef.current?.contains(e.target)) return;
+      e.preventDefault();
+    };
+    document.addEventListener('touchmove', prevent, { passive: false });
     return () => {
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.width = '';
+      document.removeEventListener('touchmove', prevent);
     };
   }, [isMobile]);
 
   useEffect(() => {
     markSeen();
-    inputRef.current?.focus();
+    if (!isMobile) inputRef.current?.focus();
     return () => closeSeen();
   }, []);
 
@@ -129,8 +151,10 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
     e?.preventDefault();
     if (!text.trim()) return;
     if (containsProfanity(text)) return;
-    await sendMessage(text);
+    const msg = text;
     setText('');
+    inputRef.current?.focus();
+    await sendMessage(msg);
   };
 
   const panelClass = isMobile
@@ -140,7 +164,7 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
   return (
     <motion.div
       className={panelClass}
-      style={isMobile ? { height: vpHeight } : undefined}
+      style={isMobile ? { height: vpHeight, top: vpTop } : undefined}
       initial={isMobile ? { y: '100%' } : { opacity: 0, scale: 0.95, y: 20 }}
       animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
       exit={isMobile ? { y: '100%' } : { opacity: 0, scale: 0.95, y: 20 }}
@@ -161,7 +185,7 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
       </div>
 
       {/* Mesajlar */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+      <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {loading && (
           <div className="flex justify-center py-8">
             <div className="w-5 h-5 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
