@@ -26,8 +26,8 @@ export default function ProfilePage() {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [dmOpen, setDmOpen] = useState(false);
 
-  const displayName = profile?.displayName || user?.displayName || 'Kullanıcı';
-  const photoURL = profile?.photoURL || user?.photoURL;
+  const displayName = profile?.displayName || 'Kullanıcı';
+  const photoURL = profile?.photoURL || null;
   const bio = profile?.bio || '';
 
   const availableGenres = useMemo(() => {

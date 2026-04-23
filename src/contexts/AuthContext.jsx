@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
-import { auth, googleProvider } from '../config/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, googleProvider, db } from '../config/firebase';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
@@ -26,6 +27,13 @@ export function AuthProvider({ children }) {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
+      if (u) {
+        setDoc(
+          doc(db, 'users', u.uid),
+          { displayName: u.displayName, photoURL: u.photoURL, email: u.email },
+          { merge: true },
+        ).catch(() => {});
+      }
     });
     return unsub;
   }, []);

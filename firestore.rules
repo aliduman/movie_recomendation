@@ -69,6 +69,11 @@ service cloud.firestore {
       match /dms/{dmId} {
         allow read, write: if isOwner(userId);
       }
+
+      // FCM push token'ları
+      match /fcmTokens/{token} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // Direkt mesaj konuşmaları

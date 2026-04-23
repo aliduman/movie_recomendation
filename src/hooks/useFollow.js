@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import {
-  doc, setDoc, deleteDoc, onSnapshot,
-  collection, getCountFromServer,
-} from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, onSnapshot, collection } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { notifyFollow } from '../utils/notify';
 
 export function useFollow(targetUid) {
   const { user } = useAuth();
@@ -54,6 +52,7 @@ export function useFollow(targetUid) {
       const data = { uid: user.uid, displayName: user.displayName, photoURL: user.photoURL };
       await setDoc(followerRef, data);
       await setDoc(followingRef, { uid: targetUid });
+      notifyFollow(targetUid);
     }
   };
 

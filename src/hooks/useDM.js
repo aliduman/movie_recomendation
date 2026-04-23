@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   collection, addDoc, onSnapshot, orderBy, query,
   limit, serverTimestamp, doc, setDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { notifyDM } from '../utils/notify';
 
 export function dmId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -43,6 +44,7 @@ export function useDM(otherUid) {
     const meta = { lastMessage: text.trim(), lastAt: serverTimestamp() };
     await setDoc(doc(db, 'users', user.uid, 'dms', rid), { ...meta, otherUid }, { merge: true });
     await setDoc(doc(db, 'users', otherUid, 'dms', rid), { ...meta, otherUid: user.uid }, { merge: true });
+    notifyDM(otherUid, text.trim());
   };
 
   return { messages, loading, sendMessage, rid };
