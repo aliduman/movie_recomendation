@@ -91,33 +91,35 @@ export function useFavorites() {
     async (movie) => {
       const exists = favorites.some((f) => f.id === movie.id);
 
+      const payload = {
+        id: movie.id,
+        title: movie.title,
+        poster_path: movie.poster_path,
+        vote_average: movie.vote_average,
+        ...(movie.genre_ids?.length ? { genre_ids: movie.genre_ids } : {}),
+      };
+
       if (!user) {
         if (exists) {
           writeGuestFavorites(favorites.filter((f) => f.id !== movie.id));
         } else {
-          writeGuestFavorites([
-            ...favorites,
-            {
-              id: movie.id,
-              title: movie.title,
-              poster_path: movie.poster_path,
-              vote_average: movie.vote_average,
-            },
-          ]);
+          writeGuestFavorites([...favorites, payload]);
         }
         return;
       }
 
       const ref = doc(db, 'users', user.uid, 'favorites', String(movie.id));
+      const fanRef = doc(db, 'movies', String(movie.id), 'likedBy', user.uid);
       if (exists) {
         await deleteDoc(ref);
+        await deleteDoc(fanRef);
       } else {
-        await setDoc(ref, {
-          id: movie.id,
-          title: movie.title,
-          poster_path: movie.poster_path,
-          vote_average: movie.vote_average,
-          updatedAt: serverTimestamp(),
+        await setDoc(ref, { ...payload, updatedAt: serverTimestamp() });
+        await setDoc(fanRef, {
+          uid: user.uid,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          likedAt: serverTimestamp(),
         });
       }
     },

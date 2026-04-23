@@ -1,11 +1,24 @@
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import MovieCard from '../components/MovieCard';
 import { useFavorites } from '../hooks/useFavorites';
 import { useAuth } from '../contexts/AuthContext';
+import { GENRES } from '../hooks/useMovies';
 
 export default function FavoritesPage() {
   const { favorites, loading } = useFavorites();
   const { user } = useAuth();
+  const [selectedGenre, setSelectedGenre] = useState(null);
+
+  const availableGenres = useMemo(() => {
+    const ids = new Set(favorites.flatMap((f) => f.genre_ids || []));
+    return GENRES.filter((g) => ids.has(g.id));
+  }, [favorites]);
+
+  const filtered = useMemo(() => {
+    if (!selectedGenre) return favorites;
+    return favorites.filter((f) => f.genre_ids?.includes(selectedGenre));
+  }, [favorites, selectedGenre]);
 
   return (
     <motion.div
@@ -14,14 +27,12 @@ export default function FavoritesPage() {
       exit={{ opacity: 0 }}
       className="pt-24 pb-12 max-w-7xl mx-auto px-4"
     >
-      <div className="text-center mb-10">
+      <div className="text-center mb-8">
         <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">
           ❤️ Favori Filmlerim
         </h1>
         <p className="text-gray-400">
-          {user?.displayName
-            ? `${user.displayName}'in koleksiyonu`
-            : 'Koleksiyonun'}
+          {user?.displayName ? `${user.displayName}'in koleksiyonu` : 'Koleksiyonun'}
         </p>
       </div>
 
@@ -42,13 +53,59 @@ export default function FavoritesPage() {
           </p>
         </motion.div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {favorites.map((movie, i) => (
-            <MovieCard key={movie.id} movie={movie} index={i} />
-          ))}
-        </div>
+        <>
+          {/* Kategori filtreleri */}
+          {availableGenres.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              <button
+                onClick={() => setSelectedGenre(null)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                  !selectedGenre
+                    ? 'bg-gradient-to-r from-primary to-purple-500 text-white shadow-md shadow-primary/30'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                style={!selectedGenre ? {} : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                🎬 Tümü ({favorites.length})
+              </button>
+
+              {availableGenres.map((genre) => {
+                const count = favorites.filter((f) => f.genre_ids?.includes(genre.id)).length;
+                const active = selectedGenre === genre.id;
+                return (
+                  <button
+                    key={genre.id}
+                    onClick={() => setSelectedGenre(active ? null : genre.id)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                      active
+                        ? 'bg-gradient-to-r from-primary to-purple-500 text-white shadow-md shadow-primary/30'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                    style={active ? {} : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                  >
+                    {genre.emoji} {genre.name} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {filtered.length === 0 ? (
+            <div className="text-center py-16 text-gray-500">
+              Bu kategoride favori film yok.
+            </div>
+          ) : (
+            <motion.div
+              layout
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+            >
+              {filtered.map((movie, i) => (
+                <MovieCard key={movie.id} movie={movie} index={i} />
+              ))}
+            </motion.div>
+          )}
+        </>
       )}
     </motion.div>
   );
 }
-

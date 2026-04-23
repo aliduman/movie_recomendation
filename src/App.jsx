@@ -10,6 +10,7 @@ import ExplorePage from './pages/ExplorePage';
 import MovieDetailPage from './pages/MovieDetailPage';
 import ActorDetailPage from './pages/ActorDetailPage';
 import FavoritesPage from './pages/FavoritesPage';
+import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import RecommendationWizard from './components/RecommendationWizard';
 import Footer from './components/Footer';
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/movie/:id" element={<MovieDetailPage />} />
             <Route path="/person/:id" element={<ActorDetailPage />} />
+            <Route path="/profile/:uid" element={<ProfilePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route
               path="/favorites"

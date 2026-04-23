@@ -27,14 +27,16 @@ function ChatMessage({ msg, isMe, onDelete, onUpdate }) {
 
   return (
     <div className={`flex gap-2 group ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-      <img
-        src={msg.photoURL}
-        alt={msg.displayName}
-        className="w-7 h-7 rounded-full border border-white/10 flex-shrink-0 mt-0.5"
-      />
+      <Link to={`/profile/${msg.uid}`} className="flex-shrink-0 mt-0.5">
+        <img
+          src={msg.photoURL}
+          alt={msg.displayName}
+          className="w-7 h-7 rounded-full border border-white/10 hover:border-primary/50 transition-colors"
+        />
+      </Link>
       <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
         {!isMe && (
-          <span className="text-[10px] text-gray-500 px-1">{msg.displayName}</span>
+          <Link to={`/profile/${msg.uid}`} className="text-[10px] text-gray-500 hover:text-primary px-1 transition-colors">{msg.displayName}</Link>
         )}
 
         {editing ? (

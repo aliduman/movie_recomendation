@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv } from 'react-icons/fi';
 import { useMovieDetail } from '../hooks/useMovies';
 import { useFavorites } from '../hooks/useFavorites';
+import { useMovieFans } from '../hooks/useMovieFans';
 import { backdrop, poster, profile } from '../config/tmdb';
 import MovieCard from '../components/MovieCard';
 import WatchProvidersModal from '../components/WatchProvidersModal';
@@ -14,6 +15,7 @@ export default function MovieDetailPage() {
   const { id } = useParams();
   const { movie, credits, similar, loading } = useMovieDetail(id);
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { fans } = useMovieFans(id);
   const [watchOpen, setWatchOpen] = useState(false);
   const [trailerOpen, setTrailerOpen] = useState(false);
 
@@ -154,6 +156,28 @@ export default function MovieDetailPage() {
             )}
           </motion.div>
         </div>
+
+        {/* Bu filmi beğenenler */}
+        {fans.length > 0 && (
+          <section className="mt-12">
+            <h3 className="text-lg font-bold mb-4">❤️ Bu Filmi Beğenenler
+              <span className="ml-2 text-sm font-normal text-gray-500">{fans.length} kişi</span>
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {fans.map((fan) => (
+                <Link key={fan.uid} to={`/profile/${fan.uid}`} title={fan.displayName}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl glass hover:bg-white/10 transition-colors">
+                  {fan.photoURL ? (
+                    <img src={fan.photoURL} alt={fan.displayName} className="w-7 h-7 rounded-full border border-white/10 flex-shrink-0" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs flex-shrink-0">👤</div>
+                  )}
+                  <span className="text-sm text-gray-300">{fan.displayName}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <MovieComments movieId={movie.id} />
 

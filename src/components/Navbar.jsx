@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHome, FiCompass, FiHeart, FiLogIn, FiLogOut, FiSearch } from 'react-icons/fi';
+import { FiHome, FiCompass, FiHeart, FiLogIn, FiLogOut, FiSearch, FiUser } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import SearchOverlay from './SearchOverlay';
 
@@ -75,11 +75,15 @@ export default function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-2 ml-3">
-                <img
-                  src={user.photoURL}
-                  alt=""
-                  className="w-8 h-8 rounded-full border-2 border-primary/50"
-                />
+                <Link to={`/profile/${user.uid}`} title="Profilim">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border-2 border-primary/50 hover:border-primary transition-colors" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border-2 border-primary/50 bg-primary/20 flex items-center justify-center">
+                      <FiUser size={14} />
+                    </div>
+                  )}
+                </Link>
                 <button
                   onClick={logout}
                   className="text-gray-400 hover:text-red-400 transition-colors p-2"

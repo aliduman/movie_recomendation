@@ -49,14 +49,16 @@ function CommentItem({ c, user, onDelete, onUpdate }) {
       exit={{ opacity: 0, y: -10 }}
       className={`flex gap-3 group rounded-2xl p-3 transition-colors ${isOwner ? 'bg-primary/10 border border-primary/20' : 'bg-white/[0.02]'}`}
     >
-      <img
-        src={c.photoURL}
-        alt={c.displayName}
-        className="w-9 h-9 rounded-full border border-white/10 flex-shrink-0 mt-0.5"
-      />
+      <Link to={`/profile/${c.uid}`} className="flex-shrink-0 mt-0.5">
+        <img
+          src={c.photoURL}
+          alt={c.displayName}
+          className="w-9 h-9 rounded-full border border-white/10 hover:border-primary/50 transition-colors"
+        />
+      </Link>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-sm font-semibold">{c.displayName}</span>
+          <Link to={`/profile/${c.uid}`} className="text-sm font-semibold hover:text-primary transition-colors">{c.displayName}</Link>
           <span className="text-xs text-gray-500">{timeAgo(c.createdAt)}</span>
           {c.editedAt && <span className="text-xs text-gray-600">(düzenlendi)</span>}
         </div>
