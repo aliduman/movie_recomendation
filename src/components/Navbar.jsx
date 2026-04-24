@@ -21,7 +21,8 @@ export default function Navbar() {
       <motion.nav
         initial={{ y: -80 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 glass"
+        className="fixed top-0 left-0 right-0 z-50"
+        style={{ background: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
       >
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}

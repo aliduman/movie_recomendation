@@ -19,7 +19,52 @@ const REGIONS = [
   { code: 'DE', label: '🇩🇪 Almanya' },
 ];
 
+function toSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/ı/g, 'i').replace(/İ/g, 'i')
+    .replace(/ş/g, 's').replace(/Ş/g, 's')
+    .replace(/ğ/g, 'g').replace(/Ğ/g, 'g')
+    .replace(/ç/g, 'c').replace(/Ç/g, 'c')
+    .replace(/ö/g, 'o').replace(/Ö/g, 'o')
+    .replace(/ü/g, 'u').replace(/Ü/g, 'u')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function HDFilmButton({ title, releaseDate }) {
+  const year = releaseDate?.slice(0, 4) || '';
+  const slug = year ? `${toSlug(title)}-${year}` : toSlug(title);
+  const url = `https://www.hdfilmcehennemi.nl/${slug}/`;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center justify-center gap-2.5 w-full px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors font-medium text-sm"
+    >
+      <span className="text-base leading-none">🎬</span>
+      HDFilmCehennemi'nde Ara
+    </a>
+  );
+}
+
 // Her provider satırı: logo → API'den gelen film-spesifik link | Google butonu
+function GoogleSearchButton({ title }) {
+  const url = `https://www.google.com/search?q=${encodeURIComponent(`${title} nereden izlenir`)}`;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center justify-center gap-2.5 w-full px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors font-medium text-sm"
+    >
+      <GoogleIcon />
+      Google'da izleme seçeneklerini ara
+    </a>
+  );
+}
+
 function ProviderRow({ item, jwLink, movieTitle }) {
   const gUrl = `https://www.google.com/search?q=${encodeURIComponent(`${movieTitle} ${item.provider_name}`)}`;
 
@@ -82,14 +127,19 @@ export default function WatchProvidersModal({ movie, onClose }) {
   const [providers, setProviders] = useState(null);
   const [loading, setLoading] = useState(true);
   const [region, setRegion] = useState('TR');
+  const [enTitle, setEnTitle] = useState('');
 
   useEffect(() => {
     if (!movie?.id) return;
     setLoading(true);
+    setEnTitle('');
     tmdb
       .get(`/movie/${movie.id}/watch/providers`)
       .then(({ data }) => setProviders(data?.results || {}))
       .finally(() => setLoading(false));
+    tmdb
+      .get(`/movie/${movie.id}`, { params: { language: 'en-US' } })
+      .then(({ data }) => setEnTitle(data.title || ''));
   }, [movie?.id]);
 
   useEffect(() => {
@@ -187,11 +237,15 @@ export default function WatchProvidersModal({ movie, onClose }) {
             {!loading && !data && (
               <div className="text-center py-10">
                 <p className="text-4xl mb-3">😔</p>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-400 text-sm mb-5">
                   {availableRegions.length === 0
                     ? 'Bu film için platform bilgisi bulunamadı.'
                     : 'Seçilen bölgede platform bilgisi yok.'}
                 </p>
+                <GoogleSearchButton title={movie.title} />
+                <div className="mt-2">
+                  <HDFilmButton title={enTitle || movie.title} releaseDate={movie.release_date} />
+                </div>
               </div>
             )}
 
@@ -212,6 +266,7 @@ export default function WatchProvidersModal({ movie, onClose }) {
                   <GoogleIcon />
                   Google'da tüm izleme seçeneklerini ara
                 </a>
+                <HDFilmButton title={enTitle || movie?.title} releaseDate={movie?.release_date} />
               </>
             )}
           </div>
