@@ -11,10 +11,13 @@ import MovieDetailPage from './pages/MovieDetailPage';
 import ActorDetailPage from './pages/ActorDetailPage';
 import FavoritesPage from './pages/FavoritesPage';
 import ProfilePage from './pages/ProfilePage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import LoginPage from './pages/LoginPage';
 import RecommendationWizard from './components/RecommendationWizard';
 import Footer from './components/Footer';
 import { useFCM } from './hooks/useFCM.jsx';
+import NotificationBanner from './components/NotificationBanner';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -46,7 +49,7 @@ export default function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const location = useLocation();
   const isDetailPage = /^\/movie\//.test(location.pathname);
-  useFCM();
+  const { showBanner, requestPermission, dismiss } = useFCM();
 
   useEffect(() => {
     const handler = (e) => setChatOpen(e.detail.open);
@@ -73,6 +76,8 @@ export default function App() {
             <Route path="/movie/:id" element={<MovieDetailPage />} />
             <Route path="/person/:id" element={<ActorDetailPage />} />
             <Route path="/profile/:uid" element={<ProfilePage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route
               path="/favorites"
@@ -87,6 +92,10 @@ export default function App() {
       </div>
 
       <Footer />
+
+      {showBanner && (
+        <NotificationBanner onAllow={requestPermission} onDismiss={dismiss} />
+      )}
 
       {/* Floating Wizard Button */}
       <motion.div
