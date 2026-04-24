@@ -19,7 +19,11 @@ export function useFCM() {
       // Service worker kaydet
       const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
 
-      // Token al (izin ister)
+      // İzin iste
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+
+      // Token al
       const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg })
         .catch(() => null);
 
