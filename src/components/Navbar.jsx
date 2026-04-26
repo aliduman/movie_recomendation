@@ -39,8 +39,9 @@ export default function Navbar() {
           <div className="flex items-center gap-1">
             {links.map(({ to, label, icon: Icon }) => {
               const active = pathname === to;
+              const isHome = to === '/';
               return (
-                <Link key={to} to={to} className="relative px-3 py-2 rounded-lg group">
+                <Link key={to} to={to} className={`relative px-3 py-3 sm:px-2 sm:py-2 rounded-lg group ${isHome ? 'hidden sm:flex' : ''}`}>
                   {active && (
                     <motion.div
                       layoutId="nav-active"
@@ -53,7 +54,7 @@ export default function Navbar() {
                       active ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'
                     }`}
                   >
-                    <Icon size={16} />
+                    <Icon size={18} className="sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">{label}</span>
                   </span>
                 </Link>
@@ -74,7 +75,7 @@ export default function Navbar() {
               <div className="flex items-center gap-2 ml-3">
                 <Link to={`/profile/${user.uid}`} title="Profilim">
                   {user.photoURL ? (
-                    <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border-2 border-primary/50 hover:border-primary transition-colors" />
+                    <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border-2 border-primary/50 hover:border-primary transition-colors object-cover" />
                   ) : (
                     <div className="w-8 h-8 rounded-full border-2 border-primary/50 bg-primary/20 flex items-center justify-center">
                       <FiUser size={14} />

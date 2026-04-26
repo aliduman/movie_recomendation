@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "routes": [
     {
+      "src": "/movie/([^/]+)",
+      "dest": "/api/og/$1"
+    },
+    {
       "handle": "filesystem"
     },
     {
@@ -11,4 +15,3 @@
     }
   ]
 }
-

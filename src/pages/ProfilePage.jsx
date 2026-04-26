@@ -100,11 +100,11 @@ export default function ProfilePage() {
 
           <div className="px-6 py-8 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
             {/* Avatar */}
-            <div className="relative flex-shrink-0">
+            <div className="relative rounded-2xl overflow-hidden border-2 border-primary/40 shadow-xl shadow-primary/20" style={{ flex: '0 0 80px', width: 80, height: 80 }}>
               {photoURL ? (
-                <img src={photoURL} alt="" className="w-20 h-20 rounded-2xl border-2 border-primary/40 shadow-xl shadow-primary/20" />
+                <img src={photoURL} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-primary/20 border-2 border-primary/40 flex items-center justify-center text-3xl">👤</div>
+                <div className="w-full h-full bg-primary/20 flex items-center justify-center text-3xl">👤</div>
               )}
             </div>
 
@@ -174,7 +174,7 @@ export default function ProfilePage() {
                   </>
                 ) : null}
                 <motion.button whileTap={{ scale: 0.95 }} onClick={shareProfile}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-2 rounded-xl text-sm font-medium text-gray-300 hover:text-white transition-colors"
                   style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
                   <FiShare2 size={14} /> Paylaş
                 </motion.button>
