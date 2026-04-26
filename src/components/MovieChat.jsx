@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion';
 import { FiMessageCircle, FiSend, FiX, FiChevronDown, FiEdit2, FiTrash2, FiCheck } from 'react-icons/fi';
 import { useChat } from '../hooks/useChat';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,10 +12,38 @@ function timeLabel(ts) {
   return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 }
 
-function ChatMessage({ msg, isMe, onDelete, onUpdate }) {
-  const [editing, setEditing] = useState(false);
+const SWIPE_REVEAL = 126;
+
+function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingId }) {
+  const editing = editingId === msg.id;
+  const setEditing = (val) => setEditingId(val ? msg.id : null);
   const [editText, setEditText] = useState(msg.text);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => { if (!editing) setEditText(msg.text); }, [editing]);
+  const x = useMotionValue(0);
+  const [open, setOpen] = useState(false);
+
+  const snap = (to) => {
+    setOpen(to !== 0);
+    animate(x, to, { type: 'spring', stiffness: 400, damping: 35 });
+  };
+
+  const wasDragging = useRef(false);
+
+  const handleDragEnd = (_, info) => {
+    wasDragging.current = true;
+    setTimeout(() => { wasDragging.current = false; }, 100);
+
+    const currentX = x.get();
+    const swipedLeft = info.offset.x < -20 || info.velocity.x < -200;
+    const swipedRight = info.offset.x > 20 || info.velocity.x > 200;
+
+    if (currentX < 0 && swipedRight) snap(0);
+    else if (swipedLeft) snap(-SWIPE_REVEAL);
+    else if (currentX < -SWIPE_REVEAL / 2) snap(-SWIPE_REVEAL);
+    else snap(0);
+  };
 
   const handleSave = async () => {
     if (!editText.trim() || saving || containsProfanity(editText)) return;
@@ -26,63 +54,90 @@ function ChatMessage({ msg, isMe, onDelete, onUpdate }) {
   };
 
   return (
-    <div className={`flex gap-2 group ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-      <Link to={`/profile/${msg.uid}`} className="flex-shrink-0 mt-0.5">
-        <img
-          src={msg.photoURL}
-          alt={msg.displayName}
-          className="w-7 h-7 rounded-full border border-white/10 hover:border-primary/50 transition-colors"
-        />
-      </Link>
-      <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
-        {!isMe && (
-          <Link to={`/profile/${msg.uid}`} className="text-[10px] text-gray-500 hover:text-primary px-1 transition-colors">{msg.displayName}</Link>
-        )}
-
-        {editing ? (
-          <div className="flex items-end gap-1">
-            <textarea
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave(); } if (e.key === 'Escape') { setEditText(msg.text); setEditing(false); } }}
-              autoFocus
-              rows={2}
-              className="bg-dark border border-primary/40 focus:outline-none rounded-xl px-3 py-1.5 text-sm resize-none w-48"
-            />
-            <div className="flex flex-col gap-1">
-              <motion.button whileTap={{ scale: 0.9 }} onClick={handleSave} disabled={saving} className="p-1.5 rounded-lg bg-primary hover:bg-primary/80 disabled:opacity-40 transition-colors">
-                <FiCheck size={12} />
-              </motion.button>
-              <motion.button whileTap={{ scale: 0.9 }} onClick={() => { setEditText(msg.text); setEditing(false); }} className="p-1.5 rounded-lg glass hover:bg-white/10 transition-colors">
-                <FiX size={12} />
-              </motion.button>
-            </div>
-          </div>
-        ) : (
-          <div
-            className={`px-3 py-2 rounded-2xl text-sm leading-relaxed break-words ${
-              isMe ? 'bg-primary text-white rounded-tr-sm' : 'bg-white/8 text-gray-200 rounded-tl-sm'
-            }`}
+    <div className="relative overflow-hidden">
+      {/* Action buttons — revealed behind on swipe */}
+      {isMe && !editing && (
+        <div className={`absolute right-0 inset-y-0 z-0 w-[116px] flex items-center gap-1.5 py-1 pr-1 ${open ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+          <button
+            onClick={() => { snap(0); setEditing(true); }}
+            className="w-[52px] h-[44px] rounded-xl bg-blue-500 active:bg-blue-600 text-white flex items-center justify-center flex-shrink-0"
           >
-            {msg.text}
-          </div>
-        )}
+            <FiEdit2 size={18} />
+          </button>
+          <button
+            onClick={() => { snap(0); onDelete(msg.id); }}
+            className="w-[52px] h-[44px] rounded-xl bg-red-500 active:bg-red-600 text-white flex items-center justify-center flex-shrink-0"
+          >
+            <FiTrash2 size={18} />
+          </button>
+        </div>
+      )}
 
-        <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-          <span className="text-[10px] text-gray-600">{timeLabel(msg.createdAt)}</span>
-          {msg.editedAt && <span className="text-[10px] text-gray-600">(düzenlendi)</span>}
-          {isMe && !editing && (
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={() => setEditing(true)} className="text-gray-500 hover:text-primary transition-colors">
-                <FiEdit2 size={10} />
-              </button>
-              <button onClick={() => onDelete(msg.id)} className="text-gray-500 hover:text-red-400 transition-colors">
-                <FiTrash2 size={10} />
-              </button>
+      <motion.div
+        style={{ x, background: bg }}
+        drag={isMe && !editing ? 'x' : false}
+        dragConstraints={{ left: -SWIPE_REVEAL, right: 0 }}
+        dragElastic={{ left: 0.05, right: 0.1 }}
+        onDragEnd={handleDragEnd}
+        onTap={() => { if (!wasDragging.current) snap(0); }}
+        className={`relative z-10 flex gap-2 w-full ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+      >
+        <Link to={`/profile/${msg.uid}`} className="flex-shrink-0 mt-0.5" onClick={(e) => { if (x.get() !== 0) { e.preventDefault(); snap(0); } }}>
+          <img
+            src={msg.photoURL}
+            alt={msg.displayName}
+            className="w-7 h-7 rounded-full border border-white/10 hover:border-primary/50 transition-colors"
+          />
+        </Link>
+        <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
+          {!isMe && (
+            <Link to={`/profile/${msg.uid}`} className="text-[10px] text-gray-500 hover:text-primary px-1 transition-colors">{msg.displayName}</Link>
+          )}
+
+          {editing ? (
+            <div className="flex flex-col gap-2 w-full">
+              <textarea
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave(); } if (e.key === 'Escape') { setEditText(msg.text); setEditing(false); } }}
+                autoFocus
+                rows={2}
+                className="bg-dark border border-primary/40 focus:outline-none rounded-xl px-3 py-2 text-sm resize-none w-full"
+              />
+              <div className="flex gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary hover:bg-primary/80 disabled:opacity-40 transition-colors text-sm font-medium"
+                >
+                  <FiCheck size={16} /> Kaydet
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { setEditText(msg.text); setEditing(false); }}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition-colors text-sm font-medium"
+                >
+                  <FiX size={16} /> İptal
+                </motion.button>
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`px-3 py-2 rounded-2xl text-sm leading-relaxed break-words ${
+                isMe ? 'bg-primary text-white rounded-tr-sm' : 'bg-white/8 text-gray-200 rounded-tl-sm'
+              }`}
+            >
+              {msg.text}
             </div>
           )}
+
+          <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+            <span className="text-[10px] text-gray-600">{timeLabel(msg.createdAt)}</span>
+            {msg.editedAt && <span className="text-[10px] text-gray-600">(düzenlendi)</span>}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -91,6 +146,7 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
   const { user } = useAuth();
   const { messages, loading, sendMessage, markSeen, closeSeen, deleteMessage, updateMessage } = useChat(movieId, movieTitle);
   const [text, setText] = useState('');
+  const [editingId, setEditingId] = useState(null);
   const [vpHeight, setVpHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
   const [vpTop, setVpTop] = useState(() => window.visualViewport?.offsetTop ?? 0);
   const bottomRef = useRef(null);
@@ -199,7 +255,7 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
           </p>
         )}
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} msg={msg} isMe={msg.uid === user?.uid} onDelete={deleteMessage} onUpdate={updateMessage} />
+          <ChatMessage key={msg.id} msg={msg} isMe={msg.uid === user?.uid} onDelete={deleteMessage} onUpdate={updateMessage} bg={isMobile ? '#111' : '#141414'} editingId={editingId} setEditingId={setEditingId} />
         ))}
         <div ref={bottomRef} />
       </div>
