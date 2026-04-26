@@ -9,7 +9,7 @@ export default function NotificationBanner({ onAllow, onDismiss }) {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 80, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[90] w-[calc(100%-2rem)] max-w-sm"
+        className="fixed bottom-24 left-0 right-0 mx-auto z-[90] w-[calc(100%-2rem)] max-w-sm"
       >
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl shadow-black/50"
           style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(109,40,217,0.4)', backdropFilter: 'blur(16px)' }}>
