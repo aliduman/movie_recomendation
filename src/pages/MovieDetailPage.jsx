@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv } from 'react-icons/fi';
+import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2 } from 'react-icons/fi';
 import { useMovieDetail } from '../hooks/useMovies';
 import { useFavorites } from '../hooks/useFavorites';
 import { useMovieFans } from '../hooks/useMovieFans';
@@ -10,6 +10,7 @@ import MovieCard from '../components/MovieCard';
 import WatchProvidersModal from '../components/WatchProvidersModal';
 import MovieComments from '../components/MovieComments';
 import MovieChat from '../components/MovieChat';
+import ShareModal from '../components/ShareModal';
 
 export default function MovieDetailPage() {
   const { id } = useParams();
@@ -18,6 +19,7 @@ export default function MovieDetailPage() {
   const { fans } = useMovieFans(id);
   const [watchOpen, setWatchOpen] = useState(false);
   const [trailerOpen, setTrailerOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   if (loading || !movie) {
     return (
@@ -129,6 +131,15 @@ export default function MovieDetailPage() {
                 <FiTv size={18} />
                 Nereden İzlerim?
               </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShareOpen(true)}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold glass hover:bg-white/10 transition-colors"
+              >
+                <FiShare2 size={18} />
+                Paylaş
+              </motion.button>
             </div>
 
             {/* Oyuncular */}
@@ -196,6 +207,10 @@ export default function MovieDetailPage() {
 
       <AnimatePresence>
         {watchOpen && <WatchProvidersModal movie={movie} onClose={() => setWatchOpen(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {shareOpen && <ShareModal movie={movie} onClose={() => setShareOpen(false)} />}
       </AnimatePresence>
 
       <MovieChat movieId={movie.id} movieTitle={movie.title} />
