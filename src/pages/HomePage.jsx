@@ -25,8 +25,7 @@ export default function HomePage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       <HeroSection />

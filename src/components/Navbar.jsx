@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHome, FiCompass, FiHeart, FiLogIn, FiLogOut, FiSearch, FiUser } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import SearchOverlay from './SearchOverlay';
+import MyFlickPickLogo from './MyFlickPickLogo';
 
 const links = [
   { to: '/', label: 'Ana Sayfa', icon: FiHome },
@@ -16,6 +17,10 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
 
+  useEffect(() => {
+    setSearchOpen(false);
+  }, [pathname]);
+
   return (
     <>
       <motion.nav
@@ -26,17 +31,8 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <motion.span
-              className="text-2xl"
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
-            >
-              🎬
-            </motion.span>
-            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              FilmBul
-            </span>
+          <Link to="/">
+            <MyFlickPickLogo variant="horizontal" width={160} height={38} />
           </Link>
 
           {/* Sağ: Linkler + Arama (desktop) + Auth */}

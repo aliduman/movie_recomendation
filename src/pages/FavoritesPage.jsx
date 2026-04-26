@@ -22,8 +22,7 @@ export default function FavoritesPage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="pt-24 pb-12 max-w-7xl mx-auto px-4"
     >
@@ -100,7 +99,7 @@ export default function FavoritesPage() {
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
             >
               {filtered.map((movie, i) => (
-                <MovieCard key={movie.id} movie={movie} index={i} />
+                <MovieCard key={movie.id} movie={movie} />
               ))}
             </motion.div>
           )}

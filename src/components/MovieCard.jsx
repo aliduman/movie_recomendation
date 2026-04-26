@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiStar, FiTv } from 'react-icons/fi';
 import { poster } from '../config/tmdb';
 import { useFavorites } from '../hooks/useFavorites';
 import WatchProvidersModal from './WatchProvidersModal';
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: { opacity: 1, y: 0, scale: 1 },
-};
+const supportsHover =
+  typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
-export default function MovieCard({ movie, index = 0 }) {
+export default function MovieCard({ movie }) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const fav = isFavorite(movie.id);
   const [showProviders, setShowProviders] = useState(false);
@@ -19,11 +17,7 @@ export default function MovieCard({ movie, index = 0 }) {
   return (
     <>
       <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        transition={{ duration: 0.4, delay: index * 0.05 }}
-        whileHover={{ y: -8, scale: 1.03 }}
+        whileHover={supportsHover ? { y: -8, scale: 1.03 } : undefined}
         className="relative group"
       >
         <Link to={`/movie/${movie.id}`} className="block">
@@ -42,10 +36,10 @@ export default function MovieCard({ movie, index = 0 }) {
             )}
 
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-300" />
 
             {/* Hover info */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+            <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100 transition-all duration-300">
               <h3 className="text-sm font-bold line-clamp-2">{movie.title}</h3>
               <div className="flex items-center gap-1 mt-1 text-secondary text-xs">
                 <FiStar className="fill-secondary" size={12} />
@@ -76,19 +70,21 @@ export default function MovieCard({ movie, index = 0 }) {
             e.preventDefault();
             setShowProviders(true);
           }}
-          className="absolute top-2 left-2 p-2 rounded-full glass text-white/70 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+          className="absolute top-2 left-2 p-2 rounded-full glass text-white/70 hover:text-primary transition-colors opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
           title="Nereden İzlerim?"
         >
           <FiTv size={16} />
         </motion.button>
       </motion.div>
 
-      {showProviders && (
-        <WatchProvidersModal
-          movie={movie}
-          onClose={() => setShowProviders(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showProviders && (
+          <WatchProvidersModal
+            movie={movie}
+            onClose={() => setShowProviders(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

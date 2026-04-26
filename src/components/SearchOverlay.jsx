@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FiSearch, FiX, FiStar } from 'react-icons/fi';
 import tmdb, { poster } from '../config/tmdb';
 
@@ -40,14 +40,13 @@ export default function SearchOverlay({ onClose }) {
   }, [debounced]);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-[60] flex flex-col items-center pt-24 px-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
+    <motion.div
+      className="fixed inset-0 z-[60] flex flex-col items-center pt-24 px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
         {/* Backdrop */}
         <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
 
@@ -166,6 +165,5 @@ export default function SearchOverlay({ onClose }) {
           )}
         </motion.div>
       </motion.div>
-    </AnimatePresence>
   );
 }
