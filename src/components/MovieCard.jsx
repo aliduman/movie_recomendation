@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiStar, FiTv } from 'react-icons/fi';
 import { poster } from '../config/tmdb';
 import { useFavorites } from '../hooks/useFavorites';
 import WatchProvidersModal from './WatchProvidersModal';
+import ShareModal from './ShareModal';
 
 const supportsHover =
   typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
@@ -13,14 +14,53 @@ export default function MovieCard({ movie }) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const fav = isFavorite(movie.id);
   const [showProviders, setShowProviders] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+
+  const longPressTimer = useRef(null);
+  const didLongPress = useRef(false);
+  const startPos = useRef({ x: 0, y: 0 });
+
+  const startLongPress = (e) => {
+    didLongPress.current = false;
+    startPos.current = { x: e.clientX, y: e.clientY };
+    longPressTimer.current = setTimeout(() => {
+      didLongPress.current = true;
+      setShowShare(true);
+    }, 500);
+  };
+
+  const cancelLongPress = (e) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const checkMove = (e) => {
+    const dx = Math.abs(e.clientX - startPos.current.x);
+    const dy = Math.abs(e.clientY - startPos.current.y);
+    if (dx > 8 || dy > 8) cancelLongPress();
+  };
+
+  const handleLinkClick = (e) => {
+    if (didLongPress.current) {
+      e.preventDefault();
+      didLongPress.current = false;
+    }
+  };
 
   return (
     <>
       <motion.div
         whileHover={supportsHover ? { y: -8, scale: 1.03 } : undefined}
         className="relative group"
+        onPointerDown={startLongPress}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onPointerCancel={cancelLongPress}
+        onPointerMove={checkMove}
       >
-        <Link to={`/movie/${movie.id}`} className="block">
+        <Link to={`/movie/${movie.id}`} className="block" onClick={handleLinkClick}>
           <div className="relative overflow-hidden rounded-2xl aspect-[2/3] bg-dark">
             {movie.poster_path ? (
               <img
@@ -83,6 +123,12 @@ export default function MovieCard({ movie }) {
             movie={movie}
             onClose={() => setShowProviders(false)}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showShare && (
+          <ShareModal movie={movie} onClose={() => setShowShare(false)} />
         )}
       </AnimatePresence>
     </>
