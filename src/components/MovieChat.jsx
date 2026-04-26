@@ -20,7 +20,16 @@ function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingI
   const [editText, setEditText] = useState(msg.text);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { if (!editing) setEditText(msg.text); }, [editing]);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (!editing) { setEditText(msg.text); return; }
+    const t = setTimeout(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
+    return () => clearTimeout(t);
+  }, [editing]);
   const x = useMotionValue(0);
   const [open, setOpen] = useState(false);
 
@@ -97,10 +106,10 @@ function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingI
           {editing ? (
             <div className="flex flex-col gap-2 w-full">
               <textarea
+                ref={textareaRef}
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave(); } if (e.key === 'Escape') { setEditText(msg.text); setEditing(false); } }}
-                autoFocus
                 rows={2}
                 className="bg-dark border border-primary/40 focus:outline-none rounded-xl px-3 py-2 text-sm resize-none w-full"
               />
