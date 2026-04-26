@@ -7,7 +7,11 @@
       "Bash(npm init *)",
       "Bash(git add *)",
       "Bash(git commit -m 'feat: add GitHub Actions daily chat digest email *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "mcp__nano-banana-2__generate_image",
+      "mcp__stitch__create_design_system",
+      "mcp__magic__21st_magic_component_builder",
+      "Bash(npm run *)"
     ]
   }
 }

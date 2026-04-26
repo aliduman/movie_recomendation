@@ -187,7 +187,7 @@ export default function MovieDetailPage() {
             <h2 className="text-xl font-bold mb-6">🎯 Benzer Filmler</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {similar.map((m, i) => (
-                <MovieCard key={m.id} movie={m} index={i} />
+                <MovieCard key={m.id} movie={m} />
               ))}
             </div>
           </section>

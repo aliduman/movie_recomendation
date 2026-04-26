@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FiX } from 'react-icons/fi';
 import tmdb, { providerLogo, poster } from '../config/tmdb';
 
@@ -19,23 +19,9 @@ const REGIONS = [
   { code: 'DE', label: '🇩🇪 Almanya' },
 ];
 
-function toSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/ı/g, 'i').replace(/İ/g, 'i')
-    .replace(/ş/g, 's').replace(/Ş/g, 's')
-    .replace(/ğ/g, 'g').replace(/Ğ/g, 'g')
-    .replace(/ç/g, 'c').replace(/Ç/g, 'c')
-    .replace(/ö/g, 'o').replace(/Ö/g, 'o')
-    .replace(/ü/g, 'u').replace(/Ü/g, 'u')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
 
-function HDFilmButton({ title, releaseDate }) {
-  const year = releaseDate?.slice(0, 4) || '';
-  const slug = year ? `${toSlug(title)}-${year}` : toSlug(title);
-  const url = `https://www.hdfilmcehennemi.nl/${slug}/`;
+function HDFilmButton({ title }) {
+  const url = `https://www.google.com/search?q=${encodeURIComponent(`site:fullhdfilmizlesene.live ${title}`)}`;
   return (
     <a
       href={url}
@@ -44,7 +30,7 @@ function HDFilmButton({ title, releaseDate }) {
       className="flex items-center justify-center gap-2.5 w-full px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors font-medium text-sm"
     >
       <span className="text-base leading-none">🎬</span>
-      HDFilmCehennemi'nde Ara
+      FullHD Film İzlesene'de Ara
     </a>
   );
 }
@@ -153,15 +139,14 @@ export default function WatchProvidersModal({ movie, onClose }) {
   const availableRegions = REGIONS.filter((r) => providers?.[r.code]);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
         <motion.div
           className="relative w-full max-w-lg bg-[#141414] rounded-3xl shadow-2xl overflow-hidden"
@@ -244,7 +229,7 @@ export default function WatchProvidersModal({ movie, onClose }) {
                 </p>
                 <GoogleSearchButton title={movie.title} />
                 <div className="mt-2">
-                  <HDFilmButton title={enTitle || movie.title} releaseDate={movie.release_date} />
+                  <HDFilmButton title={enTitle || movie.title} />
                 </div>
               </div>
             )}
@@ -266,12 +251,11 @@ export default function WatchProvidersModal({ movie, onClose }) {
                   <GoogleIcon />
                   Google'da tüm izleme seçeneklerini ara
                 </a>
-                <HDFilmButton title={enTitle || movie?.title} releaseDate={movie?.release_date} />
+                <HDFilmButton title={enTitle || movie?.title} />
               </>
             )}
           </div>
         </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 }
