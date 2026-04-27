@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { GENRES } from '../hooks/useMovies';
 
 export default function GenreSelector({ selected, onSelect }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-wrap gap-2 justify-center">
       {GENRES.map((genre) => {
@@ -24,7 +27,7 @@ export default function GenreSelector({ selected, onSelect }) {
               />
             )}
             <span className="relative">
-              {genre.emoji} {genre.name}
+              {genre.emoji} {t(genre.key)}
             </span>
           </motion.button>
         );
@@ -32,4 +35,3 @@ export default function GenreSelector({ selected, onSelect }) {
     </div>
   );
 }
-

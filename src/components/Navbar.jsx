@@ -2,20 +2,23 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHome, FiCompass, FiHeart, FiLogIn, FiLogOut, FiSearch, FiUser } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import SearchOverlay from './SearchOverlay';
 import MyFlickPickLogo from './MyFlickPickLogo';
-
-const links = [
-  { to: '/', label: 'Ana Sayfa', icon: FiHome },
-  { to: '/explore', label: 'Keşfet', icon: FiCompass },
-  { to: '/favorites', label: 'Favoriler', icon: FiHeart },
-];
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navbar() {
   const { pathname } = useLocation();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [searchOpen, setSearchOpen] = useState(false);
+
+  const links = [
+    { to: '/', label: t('nav.home'), icon: FiHome },
+    { to: '/explore', label: t('nav.explore'), icon: FiCompass },
+    { to: '/favorites', label: t('nav.favorites'), icon: FiHeart },
+  ];
 
   useEffect(() => {
     setSearchOpen(false);
@@ -35,13 +38,14 @@ export default function Navbar() {
             <MyFlickPickLogo variant="horizontal" width={160} height={38} />
           </Link>
 
-          {/* Sağ: Linkler + Arama (desktop) + Auth */}
+          {/* Right: Links + Search + Language + Auth */}
           <div className="flex items-center gap-1">
             {links.map(({ to, label, icon: Icon }) => {
               const active = pathname === to;
               const isHome = to === '/';
+              const tourId = to === '/explore' ? 'explore' : undefined;
               return (
-                <Link key={to} to={to} className={`relative px-3 py-3 sm:px-2 sm:py-2 rounded-lg group ${isHome ? 'hidden sm:flex' : ''}`}>
+                <Link key={to} to={to} data-tour={tourId} className={`relative px-3 py-3 sm:px-2 sm:py-2 rounded-lg group ${isHome ? 'hidden sm:flex' : ''}`}>
                   {active && (
                     <motion.div
                       layoutId="nav-active"
@@ -49,11 +53,7 @@ export default function Navbar() {
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <span
-                    className={`relative flex items-center gap-1.5 text-sm font-medium transition-colors ${
-                      active ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'
-                    }`}
-                  >
+                  <span className={`relative flex items-center gap-1.5 text-sm font-medium transition-colors ${active ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
                     <Icon size={18} className="sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">{label}</span>
                   </span>
@@ -61,15 +61,19 @@ export default function Navbar() {
               );
             })}
 
-            {/* Arama — sadece desktop */}
+            {/* Search — desktop only */}
             <button
+              data-tour="search"
               onClick={() => setSearchOpen(true)}
               className="hidden sm:flex relative px-3 py-2 rounded-lg items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-200 transition-colors"
-              aria-label="Ara"
+              aria-label={t('nav.search')}
             >
               <FiSearch size={16} />
-              <span>Ara</span>
+              <span>{t('nav.search')}</span>
             </button>
+
+            {/* Language switcher — desktop only */}
+            <LanguageSwitcher className="hidden sm:flex ml-1" />
 
             {user ? (
               <div className="flex items-center gap-2 ml-3">
@@ -82,10 +86,7 @@ export default function Navbar() {
                     </div>
                   )}
                 </Link>
-                <button
-                  onClick={logout}
-                  className="text-gray-400 hover:text-red-400 transition-colors p-2"
-                >
+                <button onClick={logout} className="text-gray-400 hover:text-red-400 transition-colors p-2">
                   <FiLogOut size={16} />
                 </button>
               </div>
@@ -95,22 +96,23 @@ export default function Navbar() {
                 className="ml-3 flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/80 rounded-lg text-sm font-medium transition-colors"
               >
                 <FiLogIn size={14} />
-                <span className="hidden sm:inline">Giriş</span>
+                <span className="hidden sm:inline">{t('nav.login')}</span>
               </Link>
             )}
           </div>
         </div>
       </motion.nav>
 
-      {/* Floating arama butonu — sadece mobil */}
+      {/* Floating search — mobile only */}
       <motion.button
+        data-tour="search"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.8, type: 'spring', stiffness: 300, damping: 20 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setSearchOpen(true)}
-        aria-label="Ara"
+        aria-label={t('nav.search')}
         className="sm:hidden fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center bg-dark border border-white/10 text-gray-300 shadow-xl shadow-black/40"
       >
         <FiSearch size={20} />

@@ -1,0 +1,147 @@
+{
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "favorites": "Favorites",
+    "search": "Search",
+    "login": "Login"
+  },
+  "hero": {
+    "trend": "Trending",
+    "details": "View Details",
+    "explore": "Explore"
+  },
+  "home": {
+    "trending": "Trending This Week",
+    "loadMore": "Load more movies"
+  },
+  "explore": {
+    "title": "Discover Movies",
+    "subtitle": "Find the perfect movie for your mood",
+    "searchPlaceholder": "Search movies...",
+    "loadMore": "Load more movies"
+  },
+  "favorites": {
+    "title": "My Favorites",
+    "subtitle": "collection",
+    "empty": "No favorite movies yet.",
+    "emptyHint": "Save movies you love from the Explore page!",
+    "all": "All",
+    "noneInCategory": "No favorites in this category."
+  },
+  "movie": {
+    "addFavorite": "Add to Favorites",
+    "removeFavorite": "Remove from Favorites",
+    "trailer": "Trailer",
+    "whereToWatch": "Where to Watch?",
+    "share": "Share",
+    "watch": "Watch",
+    "back": "Back",
+    "cast": "Cast",
+    "fans": "People Who Love This Movie",
+    "similar": "Similar Movies",
+    "people": "people"
+  },
+  "profile": {
+    "followers": "followers",
+    "following": "following",
+    "favorites": "favorites",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "follow": "Follow",
+    "followingBtn": "Following",
+    "message": "Message",
+    "share": "Share",
+    "favMovies": "❤️ Favorite Movies",
+    "noFavs": "No favorite movies added yet.",
+    "namePlaceholder": "Full Name",
+    "bioPlaceholder": "Add a short bio...",
+    "updated": "Profile updated",
+    "updateFailed": "Update failed",
+    "profileCopied": "Profile link copied!",
+    "all": "All"
+  },
+  "chat": {
+    "title": "Movie Chat",
+    "placeholder": "Write a message...",
+    "loginPrompt": "To send messages,",
+    "loginLink": "log in",
+    "noMessages": "No messages yet. Start the conversation!",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edited": "(edited)"
+  },
+  "share": {
+    "title": "Share",
+    "whatsapp": "WhatsApp",
+    "copyLink": "Copy Link",
+    "other": "Other",
+    "copied": "Link copied!",
+    "copyFailed": "Could not copy"
+  },
+  "wizard": {
+    "button": "Find Me a Movie!"
+  },
+  "tour": {
+    "hero_title": "🎬 Trending Movies",
+    "hero_desc": "Tap dots or arrows, or swipe to browse today's trending movies.",
+    "explore_title": "🧭 Explore",
+    "explore_desc": "Filter by genre, year, and rating. Find what you want in seconds.",
+    "search_title": "🔍 Search",
+    "search_desc": "Type a movie name to get instant results.",
+    "card_title": "🍿 Movie Card",
+    "card_desc": "❤️ Favorite · 📺 Where to watch · Long press to share.",
+    "wizard_title": "✨ Find Me a Movie!",
+    "wizard_desc": "Get personalized movie recommendations based on your mood.",
+    "next": "Next",
+    "done": "Done",
+    "skip": "Skip"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "contact": "Contact",
+    "cookieNotice": "This site only uses essential technical cookies. Movie data provided by",
+    "dataProvider": "",
+    "supportedBy": "Supported By",
+    "rights": "All rights reserved."
+  },
+  "notification": {
+    "title": "Enable Notifications",
+    "desc": "Get notified about new messages and followers",
+    "allow": "Allow"
+  },
+  "comments": {
+    "title": "Comments",
+    "allTitle": "All Comments",
+    "placeholder": "Write a review...",
+    "loginPrompt": "To comment,",
+    "loginLink": "log in",
+    "empty": "No comments yet. Be the first!",
+    "showAll": "See all {{count}} comments",
+    "edit": "Edit",
+    "delete": "Delete",
+    "edited": "(edited)",
+    "profanity": "Contains inappropriate language.",
+    "profanitySubmit": "Your comment contains inappropriate content.",
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
+  },
+  "genres": {
+    "action": "Action",
+    "comedy": "Comedy",
+    "drama": "Drama",
+    "horror": "Horror",
+    "scifi": "Sci-Fi",
+    "romance": "Romance",
+    "animation": "Animation",
+    "thriller": "Thriller",
+    "documentary": "Documentary",
+    "fantasy": "Fantasy",
+    "crime": "Crime",
+    "history": "History"
+  }
+}

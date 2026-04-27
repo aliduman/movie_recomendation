@@ -3,18 +3,18 @@ import tmdb from '../config/tmdb';
 
 /* TMDB tür ID'leri */
 export const GENRES = [
-  { id: 28, name: 'Aksiyon', emoji: '💥' },
-  { id: 35, name: 'Komedi', emoji: '😂' },
-  { id: 18, name: 'Dram', emoji: '🎭' },
-  { id: 27, name: 'Korku', emoji: '👻' },
-  { id: 878, name: 'Bilim Kurgu', emoji: '🚀' },
-  { id: 10749, name: 'Romantik', emoji: '💕' },
-  { id: 16, name: 'Animasyon', emoji: '🎨' },
-  { id: 53, name: 'Gerilim', emoji: '😰' },
-  { id: 99, name: 'Belgesel', emoji: '📚' },
-  { id: 14, name: 'Fantastik', emoji: '🧙' },
-  { id: 80, name: 'Suç', emoji: '🔪' },
-  { id: 36, name: 'Tarih', emoji: '🏛️' },
+  { id: 28,    key: 'genres.action',      name: 'Aksiyon',     emoji: '💥' },
+  { id: 35,    key: 'genres.comedy',      name: 'Komedi',      emoji: '😂' },
+  { id: 18,    key: 'genres.drama',       name: 'Dram',        emoji: '🎭' },
+  { id: 27,    key: 'genres.horror',      name: 'Korku',       emoji: '👻' },
+  { id: 878,   key: 'genres.scifi',       name: 'Bilim Kurgu', emoji: '🚀' },
+  { id: 10749, key: 'genres.romance',     name: 'Romantik',    emoji: '💕' },
+  { id: 16,    key: 'genres.animation',   name: 'Animasyon',   emoji: '🎨' },
+  { id: 53,    key: 'genres.thriller',    name: 'Gerilim',     emoji: '😰' },
+  { id: 99,    key: 'genres.documentary', name: 'Belgesel',    emoji: '📚' },
+  { id: 14,    key: 'genres.fantasy',     name: 'Fantastik',   emoji: '🧙' },
+  { id: 80,    key: 'genres.crime',       name: 'Suç',         emoji: '🔪' },
+  { id: 36,    key: 'genres.history',     name: 'Tarih',       emoji: '🏛️' },
 ];
 
 export function useMovies() {

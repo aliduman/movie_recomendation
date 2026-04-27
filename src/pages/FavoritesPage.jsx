@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import MovieCard from '../components/MovieCard';
 import { useFavorites } from '../hooks/useFavorites';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +10,7 @@ export default function FavoritesPage() {
   const { favorites, loading } = useFavorites();
   const { user } = useAuth();
   const [selectedGenre, setSelectedGenre] = useState(null);
+  const { t } = useTranslation();
 
   const availableGenres = useMemo(() => {
     const ids = new Set(favorites.flatMap((f) => f.genre_ids || []));
@@ -27,11 +29,9 @@ export default function FavoritesPage() {
       className="pt-24 pb-12 max-w-7xl mx-auto px-4"
     >
       <div className="text-center mb-8">
-        <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">
-          ❤️ Favori Filmlerim
-        </h1>
+        <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">❤️ {t('favorites.title')}</h1>
         <p className="text-gray-400">
-          {user?.displayName ? `${user.displayName}'in koleksiyonu` : 'Koleksiyonun'}
+          {user?.displayName ? `${user.displayName} ${t('favorites.subtitle')}` : t('favorites.subtitle')}
         </p>
       </div>
 
@@ -46,26 +46,21 @@ export default function FavoritesPage() {
           className="text-center py-20"
         >
           <span className="text-6xl block mb-4">💔</span>
-          <p className="text-gray-500 text-lg">Henüz favori film eklemedin.</p>
-          <p className="text-gray-600 text-sm mt-1">
-            Keşfet sayfasından beğendiğin filmleri kaydet!
-          </p>
+          <p className="text-gray-500 text-lg">{t('favorites.empty')}</p>
+          <p className="text-gray-600 text-sm mt-1">{t('favorites.emptyHint')}</p>
         </motion.div>
       ) : (
         <>
-          {/* Kategori filtreleri */}
           {availableGenres.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">
               <button
                 onClick={() => setSelectedGenre(null)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                  !selectedGenre
-                    ? 'bg-gradient-to-r from-primary to-purple-500 text-white shadow-md shadow-primary/30'
-                    : 'text-gray-400 hover:text-white'
+                  !selectedGenre ? 'bg-gradient-to-r from-primary to-purple-500 text-white shadow-md shadow-primary/30' : 'text-gray-400 hover:text-white'
                 }`}
                 style={!selectedGenre ? {} : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
               >
-                🎬 Tümü ({favorites.length})
+                🎬 {t('favorites.all')} ({favorites.length})
               </button>
 
               {availableGenres.map((genre) => {
@@ -76,13 +71,11 @@ export default function FavoritesPage() {
                     key={genre.id}
                     onClick={() => setSelectedGenre(active ? null : genre.id)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                      active
-                        ? 'bg-gradient-to-r from-primary to-purple-500 text-white shadow-md shadow-primary/30'
-                        : 'text-gray-400 hover:text-white'
+                      active ? 'bg-gradient-to-r from-primary to-purple-500 text-white shadow-md shadow-primary/30' : 'text-gray-400 hover:text-white'
                     }`}
                     style={active ? {} : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
                   >
-                    {genre.emoji} {genre.name} ({count})
+                    {genre.emoji} {t(genre.key)} ({count})
                   </button>
                 );
               })}
@@ -91,14 +84,11 @@ export default function FavoritesPage() {
 
           {filtered.length === 0 ? (
             <div className="text-center py-16 text-gray-500">
-              Bu kategoride favori film yok.
+              {t('favorites.noneInCategory')}
             </div>
           ) : (
-            <motion.div
-              layout
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-            >
-              {filtered.map((movie, i) => (
+            <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {filtered.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </motion.div>

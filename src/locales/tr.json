@@ -1,0 +1,147 @@
+{
+  "nav": {
+    "home": "Ana Sayfa",
+    "explore": "Keşfet",
+    "favorites": "Favoriler",
+    "search": "Ara",
+    "login": "Giriş"
+  },
+  "hero": {
+    "trend": "Trend",
+    "details": "Detayları Gör",
+    "explore": "Keşfet"
+  },
+  "home": {
+    "trending": "Bu Hafta Trend",
+    "loadMore": "Daha fazla film gör"
+  },
+  "explore": {
+    "title": "Film Keşfet",
+    "subtitle": "Ruh haline göre mükemmel filmi bul",
+    "searchPlaceholder": "Film ara...",
+    "loadMore": "Daha fazla film gör"
+  },
+  "favorites": {
+    "title": "Favori Filmlerim",
+    "subtitle": "koleksiyonu",
+    "empty": "Henüz favori film eklemedin.",
+    "emptyHint": "Keşfet sayfasından beğendiğin filmleri kaydet!",
+    "all": "Tümü",
+    "noneInCategory": "Bu kategoride favori film yok."
+  },
+  "movie": {
+    "addFavorite": "Favorilere Ekle",
+    "removeFavorite": "Favorilerden Çıkar",
+    "trailer": "Fragman",
+    "whereToWatch": "Nereden İzlerim?",
+    "share": "Paylaş",
+    "watch": "İzle",
+    "back": "Geri",
+    "cast": "Oyuncular",
+    "fans": "Bu Filmi Beğenenler",
+    "similar": "Benzer Filmler",
+    "people": "kişi"
+  },
+  "profile": {
+    "followers": "takipçi",
+    "following": "takip",
+    "favorites": "favori",
+    "edit": "Düzenle",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "follow": "Takip Et",
+    "followingBtn": "Takip Ediliyor",
+    "message": "Mesaj",
+    "share": "Paylaş",
+    "favMovies": "❤️ Favori Filmler",
+    "noFavs": "Henüz favori film eklenmemiş.",
+    "namePlaceholder": "Ad Soyad",
+    "bioPlaceholder": "Kısa bir bio ekle...",
+    "updated": "Profil güncellendi",
+    "updateFailed": "Güncelleme başarısız",
+    "profileCopied": "Profil linki kopyalandı!",
+    "all": "Tümü"
+  },
+  "chat": {
+    "title": "Dedikodu Köşesi",
+    "placeholder": "Mesaj yaz...",
+    "loginPrompt": "Mesaj göndermek için",
+    "loginLink": "giriş yap",
+    "noMessages": "Henüz mesaj yok. Sohbeti başlat!",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "edited": "(düzenlendi)"
+  },
+  "share": {
+    "title": "Paylaş",
+    "whatsapp": "WhatsApp",
+    "copyLink": "Linki Kopyala",
+    "other": "Diğer",
+    "copied": "Link kopyalandı!",
+    "copyFailed": "Kopyalanamadı"
+  },
+  "wizard": {
+    "button": "Bana Film Bul!"
+  },
+  "tour": {
+    "hero_title": "🎬 Trend Filmler",
+    "hero_desc": "Noktalar veya oklara bas ya da parmağını kaydırarak günün trend filmlerini gez.",
+    "explore_title": "🧭 Keşfet",
+    "explore_desc": "Türe, yıl ve puana göre filtrele. İstediğin filmi saniyeler içinde bul.",
+    "search_title": "🔍 Film Ara",
+    "search_desc": "Film adını yazarak anında sonuçlara ulaş.",
+    "card_title": "🍿 Film Kartı",
+    "card_desc": "❤️ Favorile · 📺 Nereden izlerim · Uzun basınca paylaş.",
+    "wizard_title": "✨ Bana Film Bul!",
+    "wizard_desc": "Ruh haline ve tercihlerine göre kişiselleştirilmiş film önerisi al.",
+    "next": "İleri",
+    "done": "Tamam",
+    "skip": "Geç"
+  },
+  "footer": {
+    "privacy": "Gizlilik Politikası",
+    "terms": "Kullanım Koşulları",
+    "contact": "İletişim",
+    "cookieNotice": "Bu site yalnızca zorunlu teknik çerezler kullanır. Film verileri",
+    "dataProvider": "tarafından sağlanmaktadır.",
+    "supportedBy": "Destekleyen Kurum",
+    "rights": "Tüm hakları saklıdır."
+  },
+  "notification": {
+    "title": "Bildirimleri aç",
+    "desc": "Yeni mesaj ve takipçi bildirimleri al",
+    "allow": "Aç"
+  },
+  "comments": {
+    "title": "Yorumlar",
+    "allTitle": "Tüm Yorumlar",
+    "placeholder": "Filmi değerlendir...",
+    "loginPrompt": "Yorum yapmak için",
+    "loginLink": "giriş yap",
+    "empty": "Henüz yorum yok. İlk yorumu sen yap!",
+    "showAll": "Tüm {{count}} yorumu gör",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "edited": "(düzenlendi)",
+    "profanity": "Uygunsuz ifade içeriyor.",
+    "profanitySubmit": "Yorumunuz uygunsuz ifadeler içeriyor.",
+    "justNow": "az önce",
+    "minutesAgo": "{{count}} dk önce",
+    "hoursAgo": "{{count}} sa önce",
+    "daysAgo": "{{count}} gün önce"
+  },
+  "genres": {
+    "action": "Aksiyon",
+    "comedy": "Komedi",
+    "drama": "Dram",
+    "horror": "Korku",
+    "scifi": "Bilim Kurgu",
+    "romance": "Romantik",
+    "animation": "Animasyon",
+    "thriller": "Gerilim",
+    "documentary": "Belgesel",
+    "fantasy": "Fantastik",
+    "crime": "Suç",
+    "history": "Tarih"
+  }
+}

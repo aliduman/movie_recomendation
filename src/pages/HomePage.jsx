@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import HeroSection from '../components/HeroSection';
 import MovieGrid from '../components/MovieGrid';
 import { useMovies } from '../hooks/useMovies';
@@ -8,6 +9,7 @@ import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 export default function HomePage() {
   const { movies, loading, loadingMore, hasMore, fetchTrending, loadMore } = useMovies();
   const [autoLoadEnabled, setAutoLoadEnabled] = useState(false);
+  const { t } = useTranslation();
 
   const sentinelRef = useInfiniteScroll({
     enabled: autoLoadEnabled && hasMore && !loading && !loadingMore,
@@ -24,14 +26,11 @@ export default function HomePage() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
+    <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <HeroSection />
 
       <section className="max-w-7xl mx-auto px-4 py-12">
-        <h2 className="text-2xl font-bold mb-6">🔥 Bu Hafta Trend</h2>
+        <h2 className="text-2xl font-bold mb-6">🔥 {t('home.trending')}</h2>
         <MovieGrid movies={movies} loading={loading} loadingMore={loadingMore} />
 
         {hasMore && !autoLoadEnabled && (
@@ -41,7 +40,7 @@ export default function HomePage() {
               onClick={startInfiniteScroll}
               className="glass px-5 py-2 rounded-xl text-sm font-medium hover:bg-white/10 transition-colors"
             >
-              Daha fazla film gör
+              {t('home.loadMore')}
             </button>
           </div>
         )}
@@ -51,4 +50,3 @@ export default function HomePage() {
     </motion.div>
   );
 }
-

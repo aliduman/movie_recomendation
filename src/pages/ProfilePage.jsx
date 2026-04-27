@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiEdit2, FiCheck, FiX, FiShare2, FiMessageSquare, FiStar, FiUserPlus, FiUserCheck } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,6 +15,7 @@ export default function ProfilePage() {
   const { uid } = useParams();
   const { user } = useAuth();
   const isOwn = user?.uid === uid;
+  const { t } = useTranslation();
 
   const { profile, loading: profileLoading } = useProfile(uid);
   const { favorites, loading: favsLoading } = usePublicFavorites(uid);
@@ -57,10 +59,10 @@ export default function ProfilePage() {
         bio: editBio.trim(),
         photoURL: user?.photoURL || '',
       });
-      toast.success('Profil güncellendi');
+      toast.success(t('profile.updated'));
       setEditing(false);
     } catch {
-      toast.error('Güncelleme başarısız');
+      toast.error(t('profile.updateFailed'));
     }
     setSaving(false);
   };
@@ -71,7 +73,7 @@ export default function ProfilePage() {
       navigator.share({ title: `${displayName} - FilmBul`, url });
     } else {
       navigator.clipboard.writeText(url);
-      toast.success('Profil linki kopyalandı!');
+      toast.success(t('profile.profileCopied'));
     }
   };
 
@@ -116,24 +118,24 @@ export default function ProfilePage() {
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     className="bg-white/5 border border-white/15 focus:border-primary/50 focus:outline-none rounded-xl px-3 py-2 text-base font-bold text-white w-full max-w-xs"
-                    placeholder="Ad Soyad"
+                    placeholder={t('profile.namePlaceholder')}
                   />
                   <textarea
                     value={editBio}
                     onChange={(e) => setEditBio(e.target.value)}
-                    placeholder="Kısa bir bio ekle..."
+                    placeholder={t('profile.bioPlaceholder')}
                     rows={2}
                     className="bg-white/5 border border-white/15 focus:border-primary/50 focus:outline-none rounded-xl px-3 py-2 text-sm text-gray-300 w-full max-w-sm resize-none"
                   />
                   <div className="flex gap-2">
                     <motion.button whileTap={{ scale: 0.95 }} onClick={saveEdit} disabled={saving}
                       className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/80 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors">
-                      <FiCheck size={14} /> Kaydet
+                      <FiCheck size={14} /> {t('profile.save')}
                     </motion.button>
                     <motion.button whileTap={{ scale: 0.95 }} onClick={cancelEdit}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm text-gray-400 hover:text-white transition-colors"
                       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                      <FiX size={14} /> İptal
+                      <FiX size={14} /> {t('profile.cancel')}
                     </motion.button>
                   </div>
                 </div>
@@ -142,9 +144,9 @@ export default function ProfilePage() {
                   <h1 className="text-2xl font-extrabold text-white truncate">{displayName}</h1>
                   {bio && <p className="text-sm text-gray-400 mt-1 leading-relaxed">{bio}</p>}
                   <div className="flex items-center gap-4 mt-2">
-                    <span className="text-xs text-gray-400"><span className="text-white font-semibold">{followerCount}</span> takipçi</span>
-                    <span className="text-xs text-gray-400"><span className="text-white font-semibold">{followingCount}</span> takip</span>
-                    <span className="text-xs text-gray-400"><span className="text-white font-semibold">{favorites.length}</span> favori</span>
+                    <span className="text-xs text-gray-400"><span className="text-white font-semibold">{followerCount}</span> {t('profile.followers')}</span>
+                    <span className="text-xs text-gray-400"><span className="text-white font-semibold">{followingCount}</span> {t('profile.following')}</span>
+                    <span className="text-xs text-gray-400"><span className="text-white font-semibold">{favorites.length}</span> {t('profile.favorites')}</span>
                   </div>
                 </>
               )}
@@ -157,26 +159,26 @@ export default function ProfilePage() {
                   <motion.button whileTap={{ scale: 0.95 }} onClick={startEdit}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-300 hover:text-white transition-colors"
                     style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <FiEdit2 size={14} /> Düzenle
+                    <FiEdit2 size={14} /> {t('profile.edit')}
                   </motion.button>
                 ) : user ? (
                   <>
                     <motion.button whileTap={{ scale: 0.95 }} onClick={toggleFollow}
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${following ? 'text-gray-300 hover:text-red-400' : 'bg-gradient-to-r from-primary to-purple-500 hover:opacity-90 text-white shadow-lg shadow-primary/30'}`}
                       style={following ? { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' } : {}}>
-                      {following ? <><FiUserCheck size={14} /> Takip Ediliyor</> : <><FiUserPlus size={14} /> Takip Et</>}
+                      {following ? <><FiUserCheck size={14} /> {t('profile.followingBtn')}</> : <><FiUserPlus size={14} /> {t('profile.follow')}</>}
                     </motion.button>
                     <motion.button whileTap={{ scale: 0.95 }} onClick={() => setDmOpen(true)}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-300 hover:text-white transition-colors"
                       style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                      <FiMessageSquare size={14} /> Mesaj
+                      <FiMessageSquare size={14} /> {t('profile.message')}
                     </motion.button>
                   </>
                 ) : null}
                 <motion.button whileTap={{ scale: 0.95 }} onClick={shareProfile}
                   className="flex items-center gap-1.5 px-2 py-2 rounded-xl text-sm font-medium text-gray-300 hover:text-white transition-colors"
                   style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <FiShare2 size={14} /> Paylaş
+                  <FiShare2 size={14} /> {t('profile.share')}
                 </motion.button>
               </div>
             )}
@@ -185,7 +187,7 @@ export default function ProfilePage() {
 
         {/* Favoriler */}
         <div>
-          <h2 className="text-lg font-bold mb-4">❤️ Favori Filmler</h2>
+          <h2 className="text-lg font-bold mb-4">{t('profile.favMovies')}</h2>
 
           {favsLoading ? (
             <div className="flex justify-center py-12">
@@ -194,7 +196,7 @@ export default function ProfilePage() {
           ) : favorites.length === 0 ? (
             <div className="text-center py-16 text-gray-600">
               <span className="text-4xl block mb-3">🎬</span>
-              Henüz favori film eklenmemiş.
+              {t('profile.noFavs')}
             </div>
           ) : (
             <>
@@ -206,7 +208,7 @@ export default function ProfilePage() {
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${!selectedGenre ? 'bg-gradient-to-r from-primary to-purple-500 text-white shadow-md shadow-primary/30' : 'text-gray-400 hover:text-white'}`}
                     style={!selectedGenre ? {} : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
                   >
-                    🎬 Tümü ({favorites.length})
+                    🎬 {t('profile.all')} ({favorites.length})
                   </button>
                   {availableGenres.map((genre) => {
                     const count = favorites.filter((f) => f.genre_ids?.includes(genre.id)).length;
@@ -217,7 +219,7 @@ export default function ProfilePage() {
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${active ? 'bg-gradient-to-r from-primary to-purple-500 text-white shadow-md shadow-primary/30' : 'text-gray-400 hover:text-white'}`}
                         style={active ? {} : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
                       >
-                        {genre.emoji} {genre.name} ({count})
+                        {genre.emoji} {t(genre.key)} ({count})
                       </button>
                     );
                   })}

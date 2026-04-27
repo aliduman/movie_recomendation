@@ -18,6 +18,8 @@ import RecommendationWizard from './components/RecommendationWizard';
 import Footer from './components/Footer';
 import { useFCM } from './hooks/useFCM.jsx';
 import NotificationBanner from './components/NotificationBanner';
+import TipsTour from './components/TipsTour';
+import { useTranslation } from 'react-i18next';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -46,7 +48,14 @@ function ChatNotifier() {
 
 export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
+  const { t } = useTranslation();
   const [chatOpen, setChatOpen] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+  useEffect(() => {
+    if (localStorage.getItem('mfp_onboarded')) return;
+    const t = setTimeout(() => setShowTour(true), 1800);
+    return () => clearTimeout(t);
+  }, []);
   const location = useLocation();
   const isDetailPage = /^\/movie\//.test(location.pathname);
   const { showBanner, requestPermission, dismiss } = useFCM();
@@ -116,6 +125,7 @@ export default function App() {
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           whileHover={{ scale: 1.06, y: -3 }}
           whileTap={{ scale: 0.94 }}
+          data-tour="wizard"
           onClick={() => setWizardOpen(true)}
           title="Bana Film Bul"
           className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl text-white font-bold text-sm tracking-wide"
@@ -128,7 +138,7 @@ export default function App() {
           >
             🍿
           </motion.span>
-          <span className="whitespace-nowrap">Bana Film Bul!</span>
+          <span className="whitespace-nowrap">{t('wizard.button')}</span>
         </motion.button>
       </motion.div>
 
@@ -136,6 +146,18 @@ export default function App() {
       <AnimatePresence>
         {wizardOpen && (
           <RecommendationWizard onClose={() => setWizardOpen(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Tips Tour */}
+      <AnimatePresence>
+        {showTour && (
+          <TipsTour
+            onDone={() => {
+              localStorage.setItem('mfp_onboarded', '1');
+              setShowTour(false);
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion';
 import { FiPlay, FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import tmdb, { backdrop } from '../config/tmdb';
 
 export default function HeroSection() {
@@ -11,6 +12,7 @@ export default function HeroSection() {
   const x = useMotionValue(0);
   const dragged = useRef(false);
   const timerRef = useRef(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     tmdb.get('/trending/movie/day').then(({ data }) => {
@@ -45,7 +47,6 @@ export default function HeroSection() {
   const handleDragEnd = (_, info) => {
     dragged.current = true;
     setTimeout(() => { dragged.current = false; }, 100);
-
     if (info.offset.x < -50 || info.velocity.x < -350) next();
     else if (info.offset.x > 50 || info.velocity.x > 350) prev();
     else animate(x, 0, { type: 'spring', stiffness: 400, damping: 35 });
@@ -57,7 +58,7 @@ export default function HeroSection() {
   return (
     <div className="relative h-[68vh] sm:h-[85vh] overflow-hidden select-none">
 
-      {/* Arka plan — fade geçiş */}
+      {/* Background fade */}
       <AnimatePresence>
         <motion.div
           key={`bg-${movie.id}`}
@@ -67,18 +68,13 @@ export default function HeroSection() {
           transition={{ duration: 0.7, ease: 'easeInOut' }}
           className="absolute inset-0"
         >
-          <img
-            src={backdrop(movie.backdrop_path)}
-            alt=""
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
+          <img src={backdrop(movie.backdrop_path)} alt="" className="w-full h-full object-cover" draggable={false} />
           <div className="absolute inset-0 bg-gradient-to-t from-darker via-darker/60 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-darker/80 to-transparent" />
         </motion.div>
       </AnimatePresence>
 
-      {/* Sürüklenebilir içerik katmanı */}
+      {/* Draggable content layer */}
       <motion.div
         className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing"
         drag="x"
@@ -104,7 +100,7 @@ export default function HeroSection() {
             >
               <div className="flex items-center gap-2 mb-3">
                 <span className="px-3 py-1 bg-primary/80 rounded-full text-xs font-semibold">
-                  🔥 Trend
+                  🔥 {t('hero.trend')}
                 </span>
                 <span className="flex items-center gap-1 text-secondary text-sm">
                   <FiStar className="fill-secondary" size={14} />
@@ -124,21 +120,21 @@ export default function HeroSection() {
                   className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/80 rounded-xl font-semibold transition-colors"
                 >
                   <FiPlay size={18} />
-                  Detayları Gör
+                  {t('hero.details')}
                 </Link>
                 <Link
                   to="/explore"
                   onClick={(e) => dragged.current && e.preventDefault()}
                   className="px-6 py-3 glass rounded-xl font-semibold hover:bg-white/10 transition-colors"
                 >
-                  Keşfet
+                  {t('hero.explore')}
                 </Link>
               </div>
             </motion.div>
           </AnimatePresence>
 
           {/* Dot indicators */}
-          <div className="flex gap-2 mt-6 sm:mt-8 pointer-events-auto">
+          <div data-tour="hero" className="flex gap-2 mt-6 sm:mt-8 pointer-events-auto">
             {movies.map((_, i) => (
               <button
                 key={i}
@@ -152,7 +148,7 @@ export default function HeroSection() {
         </div>
       </motion.div>
 
-      {/* Sol / Sağ butonlar */}
+      {/* Prev / Next */}
       <button
         onClick={prev}
         className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/40 hover:bg-black/70 text-white transition-colors backdrop-blur-sm"
