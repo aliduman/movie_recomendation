@@ -45,7 +45,7 @@ export default function MovieGrid({ movies, loading, loadingMore = false }) {
         className={GRID_CLASSES}
       >
         {movies.map((movie, i) => (
-          <MovieCard key={movie.id} movie={movie} />
+          <MovieCard key={movie.id} movie={movie} tourId={i === 0 ? 'movie-card' : undefined} />
         ))}
       </motion.div>
 

@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2 } from 'react-icons/fi';
+import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2, FiExternalLink } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import { useMovieDetail } from '../hooks/useMovies';
 import { useFavorites } from '../hooks/useFavorites';
 import { useMovieFans } from '../hooks/useMovieFans';
+import { useAuth } from '../contexts/AuthContext';
 import { backdrop, poster, profile } from '../config/tmdb';
 import MovieCard from '../components/MovieCard';
 import WatchProvidersModal from '../components/WatchProvidersModal';
@@ -17,9 +19,13 @@ export default function MovieDetailPage() {
   const { movie, credits, similar, loading } = useMovieDetail(id);
   const { toggleFavorite, isFavorite } = useFavorites();
   const { fans } = useMovieFans(id);
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [watchOpen, setWatchOpen] = useState(false);
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [playOpen, setPlayOpen] = useState(false);
 
   if (loading || !movie) {
     return (
@@ -44,7 +50,7 @@ export default function MovieDetailPage() {
           to="/"
           className="absolute top-20 left-4 z-10 flex items-center gap-2 glass px-4 py-2 rounded-xl text-sm hover:bg-white/10 transition-colors"
         >
-          <FiArrowLeft size={16} /> Geri
+          <FiArrowLeft size={16} /> {t('movie.back')}
         </Link>
       </div>
 
@@ -102,7 +108,10 @@ export default function MovieDetailPage() {
             <div className="flex flex-wrap items-center gap-3 mt-6">
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                onClick={() => toggleFavorite(movie)}
+                onClick={() => {
+                  if (!user) { navigate('/login'); return; }
+                  toggleFavorite(movie);
+                }}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-colors ${
                   fav
                     ? 'bg-red-500/20 text-red-400 border border-red-500/30'
@@ -110,7 +119,7 @@ export default function MovieDetailPage() {
                 }`}
               >
                 <FiHeart className={fav ? 'fill-red-400' : ''} />
-                {fav ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                {fav ? t('movie.removeFavorite') : t('movie.addFavorite')}
               </motion.button>
 
               {trailer && (
@@ -119,7 +128,7 @@ export default function MovieDetailPage() {
                   onClick={() => setTrailerOpen(true)}
                   className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/80 rounded-xl font-semibold transition-colors"
                 >
-                  ▶ Fragman
+                  ▶ {t('movie.trailer')}
                 </motion.button>
               )}
 
@@ -129,8 +138,33 @@ export default function MovieDetailPage() {
                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold glass hover:bg-white/10 transition-colors"
               >
                 <FiTv size={18} />
-                Nereden İzlerim?
+                {t('movie.whereToWatch')}
               </motion.button>
+
+              {movie.imdb_id && (
+                <>
+                  <motion.a
+                    whileTap={{ scale: 0.9 }}
+                    href={`https://www.imdb.com/title/${movie.imdb_id}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold transition-colors"
+                    style={{ background: '#F5C518', color: '#000' }}
+                  >
+                    <span className="font-black text-sm leading-none">IMDb</span>
+                    <FiExternalLink size={15} />
+                  </motion.a>
+
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setPlayOpen(true)}
+                    className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-white transition-colors"
+                    style={{ background: 'linear-gradient(135deg,#16a34a,#15803d)' }}
+                  >
+                    ▶ {t('movie.watch')}
+                  </motion.button>
+                </>
+              )}
 
               <motion.button
                 whileTap={{ scale: 0.9 }}
@@ -138,14 +172,14 @@ export default function MovieDetailPage() {
                 className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold glass hover:bg-white/10 transition-colors"
               >
                 <FiShare2 size={18} />
-                Paylaş
+                {t('movie.share')}
               </motion.button>
             </div>
 
             {/* Oyuncular */}
             {cast.length > 0 && (
               <div className="mt-8">
-                <h3 className="text-lg font-bold mb-3">🎭 Oyuncular</h3>
+                <h3 className="text-lg font-bold mb-3">🎭 {t('movie.cast')}</h3>
                 <div className="flex gap-3 overflow-x-auto pb-2">
                   {cast.map((c) => (
                     <Link key={c.id} to={`/person/${c.id}`} className="flex-shrink-0 text-center w-20 hover:opacity-90 transition-opacity">
@@ -171,8 +205,8 @@ export default function MovieDetailPage() {
         {/* Bu filmi beğenenler */}
         {fans.length > 0 && (
           <section className="mt-12">
-            <h3 className="text-lg font-bold mb-4">❤️ Bu Filmi Beğenenler
-              <span className="ml-2 text-sm font-normal text-gray-500">{fans.length} kişi</span>
+            <h3 className="text-lg font-bold mb-4">❤️ {t('movie.fans')}
+              <span className="ml-2 text-sm font-normal text-gray-500">{fans.length} {t('movie.people')}</span>
             </h3>
             <div className="flex flex-wrap gap-3">
               {fans.map((fan) => (
@@ -195,7 +229,7 @@ export default function MovieDetailPage() {
         {/* Benzer Filmler */}
         {similar.length > 0 && (
           <section className="mt-16 pb-12">
-            <h2 className="text-xl font-bold mb-6">🎯 Benzer Filmler</h2>
+            <h2 className="text-xl font-bold mb-6">🎯 {t('movie.similar')}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {similar.map((m, i) => (
                 <MovieCard key={m.id} movie={m} />
@@ -244,6 +278,44 @@ export default function MovieDetailPage() {
               </div>
               <button
                 onClick={() => setTrailerOpen(false)}
+                className="absolute -top-10 right-0 text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-1"
+              >
+                ✕ Kapat
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PlayIMDB Modal */}
+      <AnimatePresence>
+        {playOpen && movie.imdb_id && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPlayOpen(false)}
+          >
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
+            <motion.div
+              className="relative w-full max-w-5xl"
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black">
+                <iframe
+                  src={`https://www.playimdb.com/title/${movie.imdb_id}/`}
+                  title={movie.title}
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+              <button
+                onClick={() => setPlayOpen(false)}
                 className="absolute -top-10 right-0 text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-1"
               >
                 ✕ Kapat

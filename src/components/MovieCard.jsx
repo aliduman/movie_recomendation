@@ -10,7 +10,7 @@ import ShareModal from './ShareModal';
 const supportsHover =
   typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
-export default function MovieCard({ movie }) {
+export default function MovieCard({ movie, tourId }) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const fav = isFavorite(movie.id);
   const [showProviders, setShowProviders] = useState(false);
@@ -52,6 +52,7 @@ export default function MovieCard({ movie }) {
   return (
     <>
       <motion.div
+        data-tour={tourId}
         whileHover={supportsHover ? { y: -8, scale: 1.03 } : undefined}
         className="relative group"
         onPointerDown={startLongPress}

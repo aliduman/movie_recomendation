@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import { FiX, FiLink, FiShare2 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 import { poster } from '../config/tmdb';
 import toast from 'react-hot-toast';
 
 export default function ShareModal({ movie, onClose }) {
+  const { t } = useTranslation();
   const url = `${window.location.origin}/movie/${movie.id}`;
   const shareText = `${movie.title} - MyFlickPick`;
 
@@ -19,10 +21,10 @@ export default function ShareModal({ movie, onClose }) {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      toast.success('Link kopyalandı!');
+      toast.success(t('share.copied'));
       onClose();
     } catch {
-      toast.error('Kopyalanamadı');
+      toast.error(t('share.copyFailed'));
     }
   };
 
@@ -31,7 +33,7 @@ export default function ShareModal({ movie, onClose }) {
       await navigator.share({ title: shareText, url });
       onClose();
     } catch {
-      // user cancelled or not supported
+      // user cancelled
     }
   };
 
@@ -55,22 +57,16 @@ export default function ShareModal({ movie, onClose }) {
         style={{ background: 'rgba(18,18,28,0.98)', border: '1px solid rgba(255,255,255,0.1)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
-          <span className="font-bold text-base">Paylaş</span>
+          <span className="font-bold text-base">{t('share.title')}</span>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
             <FiX size={18} />
           </button>
         </div>
 
-        {/* Film bilgisi */}
         <div className="flex items-center gap-3 px-5 py-4">
           {movie.poster_path ? (
-            <img
-              src={poster(movie.poster_path)}
-              alt={movie.title}
-              className="w-12 h-[72px] rounded-xl object-cover flex-shrink-0"
-            />
+            <img src={poster(movie.poster_path)} alt={movie.title} className="w-12 h-[72px] rounded-xl object-cover flex-shrink-0" />
           ) : (
             <div className="w-12 h-[72px] rounded-xl bg-dark flex items-center justify-center text-2xl flex-shrink-0">🎬</div>
           )}
@@ -83,37 +79,27 @@ export default function ShareModal({ movie, onClose }) {
           </div>
         </div>
 
-        {/* Paylaşım butonları */}
         <div className="grid grid-cols-3 gap-3 px-5 pb-6">
-          <button
-            onClick={shareWhatsApp}
-            className="flex flex-col items-center gap-2 py-3 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-colors"
-          >
+          <button onClick={shareWhatsApp} className="flex flex-col items-center gap-2 py-3 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-colors">
             <div className="w-12 h-12 rounded-2xl bg-[#25D366]/15 flex items-center justify-center">
               <FaWhatsapp size={24} className="text-[#25D366]" />
             </div>
-            <span className="text-xs text-gray-400">WhatsApp</span>
+            <span className="text-xs text-gray-400">{t('share.whatsapp')}</span>
           </button>
 
-          <button
-            onClick={copyLink}
-            className="flex flex-col items-center gap-2 py-3 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-colors"
-          >
+          <button onClick={copyLink} className="flex flex-col items-center gap-2 py-3 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-colors">
             <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center">
               <FiLink size={22} className="text-primary" />
             </div>
-            <span className="text-xs text-gray-400">Linki Kopyala</span>
+            <span className="text-xs text-gray-400">{t('share.copyLink')}</span>
           </button>
 
           {canNativeShare && (
-            <button
-              onClick={nativeShare}
-              className="flex flex-col items-center gap-2 py-3 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-colors"
-            >
+            <button onClick={nativeShare} className="flex flex-col items-center gap-2 py-3 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-colors">
               <div className="w-12 h-12 rounded-2xl bg-white/8 flex items-center justify-center">
                 <FiShare2 size={22} className="text-gray-300" />
               </div>
-              <span className="text-xs text-gray-400">Diğer</span>
+              <span className="text-xs text-gray-400">{t('share.other')}</span>
             </button>
           )}
         </div>

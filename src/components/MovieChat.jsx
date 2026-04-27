@@ -5,6 +5,7 @@ import { FiMessageCircle, FiSend, FiX, FiChevronDown, FiEdit2, FiTrash2, FiCheck
 import { useChat } from '../hooks/useChat';
 import { useAuth } from '../contexts/AuthContext';
 import { containsProfanity } from '../utils/profanityFilter';
+import { useTranslation } from 'react-i18next';
 
 function timeLabel(ts) {
   if (!ts) return '';
@@ -14,7 +15,7 @@ function timeLabel(ts) {
 
 const SWIPE_REVEAL = 126;
 
-function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingId }) {
+function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingId, t }) {
   const editing = editingId === msg.id;
   const setEditing = (val) => setEditingId(val ? msg.id : null);
   const [editText, setEditText] = useState(msg.text);
@@ -120,14 +121,14 @@ function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingI
                   disabled={saving}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary hover:bg-primary/80 disabled:opacity-40 transition-colors text-sm font-medium"
                 >
-                  <FiCheck size={16} /> Kaydet
+                  <FiCheck size={16} /> {t('chat.save')}
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => { setEditText(msg.text); setEditing(false); }}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition-colors text-sm font-medium"
                 >
-                  <FiX size={16} /> İptal
+                  <FiX size={16} /> {t('chat.cancel')}
                 </motion.button>
               </div>
             </div>
@@ -143,7 +144,7 @@ function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingI
 
           <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
             <span className="text-[10px] text-gray-600">{timeLabel(msg.createdAt)}</span>
-            {msg.editedAt && <span className="text-[10px] text-gray-600">(düzenlendi)</span>}
+            {msg.editedAt && <span className="text-[10px] text-gray-600">{t('chat.edited')}</span>}
           </div>
         </div>
       </motion.div>
@@ -153,6 +154,7 @@ function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingI
 
 function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { messages, loading, sendMessage, markSeen, closeSeen, deleteMessage, updateMessage } = useChat(movieId, movieTitle);
   const [text, setText] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -240,7 +242,7 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
         <div className="min-w-0">
-          <p className="text-xs text-gray-500">Dedikodu Köşesi</p>
+          <p className="text-xs text-gray-500">{t('chat.title')}</p>
           <h3 className="font-bold text-sm truncate">{movieTitle}</h3>
         </div>
         <button
@@ -260,11 +262,11 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
         )}
         {!loading && messages.length === 0 && (
           <p className="text-center text-gray-600 text-xs py-8">
-            Henüz mesaj yok. Sohbeti başlat!
+            {t('chat.noMessages')}
           </p>
         )}
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} msg={msg} isMe={msg.uid === user?.uid} onDelete={deleteMessage} onUpdate={updateMessage} bg={isMobile ? '#111' : '#141414'} editingId={editingId} setEditingId={setEditingId} />
+          <ChatMessage key={msg.id} msg={msg} isMe={msg.uid === user?.uid} onDelete={deleteMessage} onUpdate={updateMessage} bg={isMobile ? '#111' : '#141414'} editingId={editingId} setEditingId={setEditingId} t={t} />
         ))}
         <div ref={bottomRef} />
       </div>
@@ -278,7 +280,7 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Mesaj yaz..."
+              placeholder={t('chat.placeholder')}
               rows={1}
               className="flex-1 bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-xl px-3 py-2 text-sm resize-none placeholder-gray-600 transition-all"
               style={{ maxHeight: 80 }}
@@ -294,9 +296,9 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
           </form>
         ) : (
           <p className="text-center text-xs text-gray-500">
-            Mesaj göndermek için{' '}
+            {t('chat.loginPrompt')}{' '}
             <Link to="/login" className="text-primary hover:text-secondary transition-colors">
-              giriş yap
+              {t('chat.loginLink')}
             </Link>
           </p>
         )}
@@ -308,6 +310,7 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
 export default function MovieChat({ movieId, movieTitle }) {
   const [open, setOpen] = useState(false);
   const { unread } = useChat(movieId);
+  const { t } = useTranslation();
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
   useEffect(() => {
@@ -330,7 +333,7 @@ export default function MovieChat({ movieId, movieTitle }) {
             style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}
           >
             <FiMessageCircle size={18} />
-            <span className="hidden sm:inline">Dedikodu Köşesi</span>
+            <span className="hidden sm:inline">{t('chat.title')}</span>
             {unread > 0 && (
               <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold">
                 {unread > 9 ? '9+' : unread}

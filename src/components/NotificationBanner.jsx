@@ -1,7 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiBell, FiX } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 
 export default function NotificationBanner({ onAllow, onDismiss }) {
+  const { t } = useTranslation();
+
   return (
     <AnimatePresence>
       <motion.div
@@ -17,15 +20,15 @@ export default function NotificationBanner({ onAllow, onDismiss }) {
             <FiBell size={18} className="text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">Bildirimleri aç</p>
-            <p className="text-xs text-gray-400 mt-0.5">Yeni mesaj ve takipçi bildirimleri al</p>
+            <p className="text-sm font-semibold text-white">{t('notification.title')}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{t('notification.desc')}</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={onAllow}
               className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/80 text-white text-xs font-semibold transition-colors"
             >
-              Aç
+              {t('notification.allow')}
             </button>
             <button onClick={onDismiss} className="p-1.5 text-gray-500 hover:text-white transition-colors">
               <FiX size={16} />
