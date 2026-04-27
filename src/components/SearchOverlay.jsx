@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch, FiX, FiStar } from 'react-icons/fi';
 import tmdb, { poster } from '../config/tmdb';
 
