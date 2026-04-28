@@ -36,7 +36,7 @@ export default function FavoritesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-darker">
           <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
       ) : favorites.length === 0 ? (

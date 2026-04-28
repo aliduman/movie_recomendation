@@ -99,12 +99,32 @@ function CommentItem({ c, user, onDelete, onUpdate }) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap break-words">{c.text}</p>
+          <>
+            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap break-words">{c.text}</p>
+            {isOwner && (
+              <div className="flex sm:hidden items-center gap-1.5 mt-2">
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => { setEditText(c.text); setEditing(true); }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary text-gray-400 text-xs font-medium transition-colors"
+                >
+                  <FiEdit2 size={12} /> {t('comments.edit')}
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => onDelete(c.id)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-gray-400 text-xs font-medium transition-colors"
+                >
+                  <FiTrash2 size={12} /> {t('comments.delete')}
+                </motion.button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {isOwner && !editing && (
-        <div className="flex-shrink-0 flex items-start gap-1.5 mt-0.5">
+        <div className="hidden sm:flex flex-shrink-0 items-start gap-1.5 mt-0.5">
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={() => { setEditText(c.text); setEditing(true); }}

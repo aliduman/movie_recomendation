@@ -57,7 +57,7 @@ export default function ActorDetailPage() {
 
   if (loading || !person) {
     return (
-      <div className="pt-24 flex justify-center">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-darker">
         <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
