@@ -5,9 +5,20 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const SW_TEMPLATE = resolve(__dirname, 'src/firebase-messaging-sw.template.js');
+
+function injectEnv(src, env) {
+  return Object.keys(env)
+    .filter((k) => k.startsWith('VITE_'))
+    .reduce((s, key) => {
+      const safe = (env[key] || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return s.split(`%${key}%`).join(safe);
+    }, src);
+}
 
 function firebaseSwPlugin() {
   let env = {};
+  let templateCache = null;
   return {
     name: 'firebase-sw-env',
     config(_, { mode }) {
@@ -16,30 +27,18 @@ function firebaseSwPlugin() {
     configureServer(server) {
       server.middlewares.use('/firebase-messaging-sw.js', (req, res, next) => {
         if (req.method !== 'GET') return next();
-        let src = readFileSync(
-          resolve(__dirname, 'src/firebase-messaging-sw.template.js'),
-          'utf-8',
-        );
-        Object.keys(env)
-          .filter((k) => k.startsWith('VITE_'))
-          .forEach((key) => {
-            src = src.split(`%${key}%`).join(env[key] || '');
-          });
+        if (!templateCache) templateCache = readFileSync(SW_TEMPLATE, 'utf-8');
         res.setHeader('Content-Type', 'application/javascript');
-        res.end(src);
+        res.end(injectEnv(templateCache, env));
       });
     },
     generateBundle() {
-      let src = readFileSync(
-        resolve(__dirname, 'src/firebase-messaging-sw.template.js'),
-        'utf-8',
-      );
-      Object.keys(env)
-        .filter((k) => k.startsWith('VITE_'))
-        .forEach((key) => {
-          src = src.split(`%${key}%`).join(env[key] || '');
-        });
-      this.emitFile({ type: 'asset', fileName: 'firebase-messaging-sw.js', source: src });
+      const src = readFileSync(SW_TEMPLATE, 'utf-8');
+      this.emitFile({
+        type: 'asset',
+        fileName: 'firebase-messaging-sw.js',
+        source: injectEnv(src, env),
+      });
     },
   };
 }
