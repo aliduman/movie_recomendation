@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2, FiExternalLink } from 'react-icons/fi';
@@ -13,10 +13,11 @@ import WatchProvidersModal from '../components/WatchProvidersModal';
 import MovieComments from '../components/MovieComments';
 import MovieChat from '../components/MovieChat';
 import ShareModal from '../components/ShareModal';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 export default function MovieDetailPage() {
   const { id } = useParams();
-  const { movie, credits, similar, loading } = useMovieDetail(id);
+  const { movie, credits, similar, similarHasMore, loadingMoreSimilar, loadMoreSimilar, loading } = useMovieDetail(id);
   const { toggleFavorite, isFavorite } = useFavorites();
   const { fans } = useMovieFans(id);
   const { user } = useAuth();
@@ -26,6 +27,16 @@ export default function MovieDetailPage() {
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [playOpen, setPlayOpen] = useState(false);
+  const [infiniteScrollActive, setInfiniteScrollActive] = useState(false);
+
+  const stableLoadMoreSimilar = useCallback(() => {
+    loadMoreSimilar();
+  }, [loadMoreSimilar]);
+
+  const sentinelRef = useInfiniteScroll({
+    enabled: infiniteScrollActive && similarHasMore && !loadingMoreSimilar,
+    onLoadMore: stableLoadMoreSimilar,
+  });
 
   if (loading || !movie) {
     return (
@@ -231,10 +242,37 @@ export default function MovieDetailPage() {
           <section className="mt-16 pb-12">
             <h2 className="text-xl font-bold mb-6">🎯 {t('movie.similar')}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {similar.map((m, i) => (
+              {similar.map((m) => (
                 <MovieCard key={m.id} movie={m} />
               ))}
             </div>
+
+            {/* Daha fazla / infinite scroll */}
+            {similarHasMore && !infiniteScrollActive && (
+              <div className="flex justify-center mt-8">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setInfiniteScrollActive(true);
+                    loadMoreSimilar();
+                  }}
+                  className="px-8 py-3 rounded-xl glass hover:bg-white/10 font-semibold transition-colors"
+                >
+                  {t('explore.loadMore')}
+                </motion.button>
+              </div>
+            )}
+
+            {infiniteScrollActive && (
+              <>
+                {loadingMoreSimilar && (
+                  <div className="flex justify-center mt-8">
+                    <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  </div>
+                )}
+                <div ref={sentinelRef} className="h-4" />
+              </>
+            )}
           </section>
         )}
       </div>

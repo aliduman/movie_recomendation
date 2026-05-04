@@ -148,27 +148,56 @@ export function useMovieDetail(id) {
   const [credits, setCredits] = useState(null);
   const [providers, setProviders] = useState(null);
   const [similar, setSimilar] = useState([]);
+  const [similarPage, setSimilarPage] = useState(1);
+  const [similarTotalPages, setSimilarTotalPages] = useState(1);
+  const [loadingMoreSimilar, setLoadingMoreSimilar] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const similarHasMore = similarPage < similarTotalPages;
+
+  const mergeUniqueById = (prev, next) => {
+    const seen = new Set(prev.map((item) => item.id));
+    return [...prev, ...next.filter((item) => !seen.has(item.id))];
+  };
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
+    setSimilar([]);
+    setSimilarPage(1);
+    setSimilarTotalPages(1);
     Promise.all([
       tmdb.get(`/movie/${id}`, { params: { append_to_response: 'videos' } }),
       tmdb.get(`/movie/${id}/credits`),
       tmdb.get(`/movie/${id}/watch/providers`),
-      tmdb.get(`/movie/${id}/similar`),
+      tmdb.get(`/movie/${id}/similar`, { params: { page: 1 } }),
     ])
       .then(([movieRes, creditsRes, providersRes, similarRes]) => {
         setMovie(movieRes.data);
         setCredits(creditsRes.data);
         setProviders(providersRes.data?.results || null);
-        setSimilar(similarRes.data.results.slice(0, 8));
+        setSimilar(similarRes.data.results || []);
+        setSimilarPage(1);
+        setSimilarTotalPages(similarRes.data.total_pages || 1);
       })
       .finally(() => setLoading(false));
   }, [id]);
 
-  return { movie, credits, providers, similar, loading };
+  const loadMoreSimilar = useCallback(async () => {
+    if (loadingMoreSimilar || !similarHasMore) return;
+    const nextPage = similarPage + 1;
+    setLoadingMoreSimilar(true);
+    try {
+      const { data } = await tmdb.get(`/movie/${id}/similar`, { params: { page: nextPage } });
+      setSimilar((prev) => mergeUniqueById(prev, data.results || []));
+      setSimilarPage(nextPage);
+      setSimilarTotalPages(data.total_pages || 1);
+    } finally {
+      setLoadingMoreSimilar(false);
+    }
+  }, [id, loadingMoreSimilar, similarHasMore, similarPage]);
+
+  return { movie, credits, providers, similar, similarHasMore, loadingMoreSimilar, loadMoreSimilar, loading };
 }
 
 export function usePersonDetail(id) {
