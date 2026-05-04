@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import tmdb from '../config/tmdb';
 
 /* TMDB tür ID'leri */
@@ -155,6 +155,15 @@ export function useMovieDetail(id) {
 
   const similarHasMore = similarPage < similarTotalPages;
 
+  // Refs to read current values inside the stable callback without adding them to deps
+  const similarPageRef = useRef(1);
+  const similarHasMoreRef = useRef(false);
+  const loadingMoreSimilarRef = useRef(false);
+
+  similarPageRef.current = similarPage;
+  similarHasMoreRef.current = similarHasMore;
+  loadingMoreSimilarRef.current = loadingMoreSimilar;
+
   const mergeUniqueById = (prev, next) => {
     const seen = new Set(prev.map((item) => item.id));
     return [...prev, ...next.filter((item) => !seen.has(item.id))];
@@ -184,8 +193,8 @@ export function useMovieDetail(id) {
   }, [id]);
 
   const loadMoreSimilar = useCallback(async () => {
-    if (loadingMoreSimilar || !similarHasMore) return;
-    const nextPage = similarPage + 1;
+    if (loadingMoreSimilarRef.current || !similarHasMoreRef.current) return;
+    const nextPage = similarPageRef.current + 1;
     setLoadingMoreSimilar(true);
     try {
       const { data } = await tmdb.get(`/movie/${id}/similar`, { params: { page: nextPage } });
@@ -195,7 +204,7 @@ export function useMovieDetail(id) {
     } finally {
       setLoadingMoreSimilar(false);
     }
-  }, [id, loadingMoreSimilar, similarHasMore, similarPage]);
+  }, [id]);
 
   return { movie, credits, providers, similar, similarHasMore, loadingMoreSimilar, loadMoreSimilar, loading };
 }

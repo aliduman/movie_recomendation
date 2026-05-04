@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2, FiExternalLink } from 'react-icons/fi';
@@ -29,13 +29,9 @@ export default function MovieDetailPage() {
   const [playOpen, setPlayOpen] = useState(false);
   const [infiniteScrollActive, setInfiniteScrollActive] = useState(false);
 
-  const stableLoadMoreSimilar = useCallback(() => {
-    loadMoreSimilar();
-  }, [loadMoreSimilar]);
-
   const sentinelRef = useInfiniteScroll({
     enabled: infiniteScrollActive && similarHasMore && !loadingMoreSimilar,
-    onLoadMore: stableLoadMoreSimilar,
+    onLoadMore: loadMoreSimilar,
   });
 
   if (loading || !movie) {
