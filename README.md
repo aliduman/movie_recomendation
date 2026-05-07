@@ -42,19 +42,23 @@ npm run dev
 4. Config değerlerini `.env` dosyasına kopyala
 5. Firestore Database oluştur (Production veya test modunda)
 
-### Firestore kurali (kullanici bazli veri)
+### Firestore kurallari
 
-Favoriler ve öneri geçmişi `users/{uid}` altında tutulur. Aşağıdaki kural, kullanıcının sadece kendi verisine erişmesini sağlar:
+Firestore kurallari `/home/runner/work/movie_recomendation/movie_recomendation/firestore.rules` dosyasinda tutulur.
 
-```txt
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
+Uygulama; herkese acik profil/favori goruntuleme, kullaniciya ozel watchlist koleksiyonlari, film bazli sohbet/yorum alanlari ve iki katilimcili DM akislarini birlikte kullandigi icin kurallar tek satirlik bir `users/{uid}/{document=**}` yapisindan daha ayrintilidir.
+
+Ozet olarak:
+
+- `users/{uid}` altindaki profil, ayarlar, FCM token, oneriler, chatParticipation, watchlist/watchlists verileri sadece sahip tarafindan yazilabilir
+- `users/{uid}/favorites` herkese okunabilir, sadece sahip yazabilir
+- `movies/{movieId}/chat` ve `movies/{movieId}/comments` sadece giris yapan kullanicilar tarafindan olusturulabilir; `uid` alani oturumdaki kullanici ile eslesmek zorundadir
+- `dms/{dmId}/messages` sadece ilgili iki kullanici tarafindan okunup yazilabilir
+
+Degisiklik yaptiktan sonra kurallari yayinlamak icin:
+
+```bash
+firebase deploy --only firestore:rules
 ```
 
 ## Teknoloji
@@ -74,4 +78,3 @@ service cloud.firestore {
   1. Firebase Console > Authentication > Sign-in method > `Google` saglayicisini **Enable** edin.
   2. Firebase Console > Authentication > Settings > Authorized domains listesine `localhost` ekleyin.
   3. `.env` icindeki `VITE_FIREBASE_*` degerlerinin ayni Firebase projesine ait oldugunu dogrulayin.
-
