@@ -19,8 +19,14 @@ service cloud.firestore {
 
     function isDirectMessageParticipant(dmId) {
       return isSignedIn() && (
-        dmId.matches('^' + request.auth.uid + '_[^_]+$') ||
-        dmId.matches('^[^_]+_' + request.auth.uid + '$')
+        (
+          dmId.matches('^' + request.auth.uid + '_[^_]+$') &&
+          !dmId.matches('^' + request.auth.uid + '_' + request.auth.uid + '$')
+        ) ||
+        (
+          dmId.matches('^[^_]+_' + request.auth.uid + '$') &&
+          !dmId.matches('^' + request.auth.uid + '_' + request.auth.uid + '$')
+        )
       );
     }
 
@@ -67,6 +73,25 @@ service cloud.firestore {
         isRequiredString(request.resource.data.lastMessage, 2000) &&
         isRequiredString(request.resource.data.otherUid, 128) &&
         request.resource.data.lastAt == request.time;
+    }
+
+    function isValidOwnDmMetadata(userId, dmId) {
+      return isOwner(userId) &&
+        request.resource.data.otherUid != request.auth.uid &&
+        (
+          dmId == request.auth.uid + '_' + request.resource.data.otherUid ||
+          dmId == request.resource.data.otherUid + '_' + request.auth.uid
+        );
+    }
+
+    function isValidPeerDmMetadata(userId, dmId) {
+      return isSignedIn() &&
+        userId != request.auth.uid &&
+        request.resource.data.otherUid == request.auth.uid &&
+        (
+          dmId == request.auth.uid + '_' + userId ||
+          dmId == userId + '_' + request.auth.uid
+        );
     }
 
     function isValidDmMessageCreate(data) {
@@ -153,8 +178,8 @@ service cloud.firestore {
         allow create, update: if isDirectMessageParticipant(dmId) &&
           isValidDmMetadata() &&
           (
-            isOwner(userId) ||
-            request.resource.data.otherUid == request.auth.uid
+            isValidOwnDmMetadata(userId, dmId) ||
+            isValidPeerDmMetadata(userId, dmId)
           );
         allow delete: if isOwner(userId);
       }
