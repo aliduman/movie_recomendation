@@ -24,7 +24,8 @@ export default function WatchlistPage() {
 
   return (
     <motion.div
-      initial={{ opacity: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="pt-24 pb-12 max-w-7xl mx-auto px-4"
     >

@@ -188,11 +188,6 @@ export default function Navbar() {
                     )}
                   </AnimatePresence>
                 </div>
-
-                {/* Logout button — desktop only */}
-                <button onClick={handleLogout} className="hidden sm:block text-gray-400 hover:text-red-400 transition-colors p-2">
-                  <FiLogOut size={16} />
-                </button>
               </div>
             ) : (
               <Link

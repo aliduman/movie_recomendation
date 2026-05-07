@@ -92,7 +92,7 @@
     "title": "İzleme Listelerim",
     "subtitle": "izleme listesi",
     "empty": "Henüz izleme listene film eklemedin.",
-    "emptyHint": "Film detay sayfasında 📋 butonuna basarak filmleri listene ekle!",
+    "emptyHint": "Film detay sayfasında yer imi butonuna basarak filmleri listene ekle!",
     "all": "Tümü",
     "noneInCategory": "Bu kategoride film yok."
   },
