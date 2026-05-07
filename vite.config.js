@@ -52,7 +52,12 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined;
 
-          if (id.includes('/node_modules/firebase/')) return 'firebase';
+          if (
+            id.includes('/node_modules/firebase/') ||
+            id.includes('/node_modules/@firebase/')
+          ) {
+            return 'firebase';
+          }
           if (id.includes('/node_modules/framer-motion/')) return 'motion';
           if (id.includes('/node_modules/react-icons/')) return 'icons';
           if (id.includes('/node_modules/i18next/') || id.includes('/node_modules/react-i18next/')) {
