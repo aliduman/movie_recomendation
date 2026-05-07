@@ -4,7 +4,10 @@
     "explore": "Keşfet",
     "favorites": "Favoriler",
     "search": "Ara",
-    "login": "Giriş"
+    "login": "Giriş",
+    "profile": "Profil",
+    "watchlist": "İzleme Listelerim",
+    "logout": "Çıkış Yap"
   },
   "hero": {
     "trend": "Trend",
@@ -40,7 +43,9 @@
     "cast": "Oyuncular",
     "fans": "Bu Filmi Beğenenler",
     "similar": "Benzer Filmler",
-    "people": "kişi"
+    "people": "kişi",
+    "addWatchlist": "İzleme Listesine Ekle",
+    "removeWatchlist": "İzleme Listesinden Çıkar"
   },
   "profile": {
     "followers": "takipçi",
@@ -82,6 +87,14 @@
   },
   "wizard": {
     "button": "Bana Film Bul!"
+  },
+  "watchlist": {
+    "title": "İzleme Listelerim",
+    "subtitle": "izleme listesi",
+    "empty": "Henüz izleme listene film eklemedin.",
+    "emptyHint": "Film detay sayfasında 📋 butonuna basarak filmleri listene ekle!",
+    "all": "Tümü",
+    "noneInCategory": "Bu kategoride film yok."
   },
   "tour": {
     "hero_title": "🎬 Trend Filmler",
