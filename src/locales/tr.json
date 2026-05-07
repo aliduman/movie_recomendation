@@ -88,6 +88,10 @@
   "wizard": {
     "button": "Bana Film Bul!"
   },
+  "badge": {
+    "movie": "Film",
+    "tv": "Dizi"
+  },
   "watchlist": {
     "title": "İzleme Listelerim",
     "subtitle": "izleme listeleri",

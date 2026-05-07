@@ -8,6 +8,7 @@ import { useProfile, usePublicFavorites, saveProfile } from '../hooks/useProfile
 import { useFollow } from '../hooks/useFollow';
 import { GENRES } from '../hooks/useMovies';
 import { poster } from '../config/tmdb';
+import { buildDetailPath, getTitle } from '../utils/media';
 import DMPanel from '../components/DMPanel';
 import toast from 'react-hot-toast';
 
@@ -226,16 +227,16 @@ export default function ProfilePage() {
 
               <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {filtered.map((movie) => (
-                  <motion.div key={movie.id} layout whileHover={{ scale: 1.03, y: -4 }} whileTap={{ scale: 0.97 }}
+                  <motion.div key={movie.docId || movie.id} layout whileHover={{ scale: 1.03, y: -4 }} whileTap={{ scale: 0.97 }}
                     className="group relative rounded-2xl overflow-hidden bg-dark border border-white/5 shadow-lg shadow-black/20">
-                    <Link to={`/movie/${movie.id}`}>
+                    <Link to={buildDetailPath(movie)}>
                       {movie.poster_path ? (
-                        <img src={poster(movie.poster_path)} alt={movie.title} className="w-full aspect-[2/3] object-cover" />
+                        <img src={poster(movie.poster_path)} alt={getTitle(movie)} className="w-full aspect-[2/3] object-cover" />
                       ) : (
                         <div className="w-full aspect-[2/3] bg-dark/80 flex items-center justify-center text-4xl">🎬</div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                        <p className="text-xs font-semibold text-white line-clamp-2">{movie.title}</p>
+                        <p className="text-xs font-semibold text-white line-clamp-2">{getTitle(movie)}</p>
                         {movie.vote_average && (
                           <span className="flex items-center gap-1 text-secondary text-xs mt-1">
                             <FiStar className="fill-secondary" size={10} />

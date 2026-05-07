@@ -50,7 +50,7 @@ service cloud.firestore {
     }
 
     function isValidCommentCreate(data) {
-      return data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt']) &&
+      return data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt', 'movieId', 'mediaType']) &&
         data.uid == request.auth.uid &&
         isOptionalString(data.displayName, 120) &&
         isOptionalString(data.photoURL, 2048) &&
@@ -59,7 +59,7 @@ service cloud.firestore {
     }
 
     function isValidCommentUpdate() {
-      return request.resource.data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt', 'editedAt']) &&
+      return request.resource.data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt', 'editedAt', 'movieId', 'mediaType']) &&
         request.resource.data.uid == resource.data.uid &&
         request.resource.data.displayName == resource.data.displayName &&
         request.resource.data.photoURL == resource.data.photoURL &&
@@ -121,6 +121,28 @@ service cloud.firestore {
 
     // Bu filmi beğenenler (herkese açık okuma)
     match /movies/{movieId}/likedBy/{uid} {
+      allow read: if true;
+      allow write: if isOwner(uid);
+    }
+
+    // TV dizisi sohbet odası — /movies altındaki kuralın birebir aynası
+    match /tv/{tvId}/chat/{messageId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidChatCreate(request.resource.data);
+      allow update: if isSignedIn() && request.auth.uid == resource.data.uid && isValidChatUpdate();
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.uid;
+    }
+
+    // TV dizisi yorumları
+    match /tv/{tvId}/comments/{commentId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidCommentCreate(request.resource.data);
+      allow update: if isSignedIn() && request.auth.uid == resource.data.uid && isValidCommentUpdate();
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.uid;
+    }
+
+    // Bu diziyi beğenenler
+    match /tv/{tvId}/likedBy/{uid} {
       allow read: if true;
       allow write: if isOwner(uid);
     }

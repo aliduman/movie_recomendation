@@ -88,6 +88,10 @@
   "wizard": {
     "button": "Find Me a Movie!"
   },
+  "badge": {
+    "movie": "Movie",
+    "tv": "TV"
+  },
   "watchlist": {
     "title": "My Watchlists",
     "subtitle": "watchlists",

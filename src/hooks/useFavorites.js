@@ -11,8 +11,26 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
+import { getMediaType, getReleaseDate, getTitle, mediaCollection, mediaDocId, parseMediaDocId } from '../utils/media';
 
 const GUEST_KEY = 'movie_favorites_guest';
+
+// Build the persisted shape for a favorite. We persist title fields under
+// both `title` and `name` so legacy movie-only consumers keep working while
+// TV-aware consumers can use the original field.
+function buildPayload(movie) {
+  const mediaType = getMediaType(movie);
+  return {
+    id: movie.id,
+    media_type: mediaType,
+    title: getTitle(movie),
+    name: movie.name || null,
+    poster_path: movie.poster_path,
+    vote_average: movie.vote_average,
+    release_date: getReleaseDate(movie) || null,
+    ...(movie.genre_ids?.length ? { genre_ids: movie.genre_ids } : {}),
+  };
+}
 
 export function useFavorites() {
   const { user } = useAuth();
@@ -20,7 +38,12 @@ export function useFavorites() {
   const [loading, setLoading] = useState(true);
 
   const readGuestFavorites = useCallback(() => {
-    return JSON.parse(localStorage.getItem(GUEST_KEY) || '[]');
+    const list = JSON.parse(localStorage.getItem(GUEST_KEY) || '[]');
+    return list.map((f) => ({
+      ...f,
+      media_type: f.media_type || 'movie',
+      docId: f.docId || mediaDocId(f.id, f.media_type || 'movie'),
+    }));
   }, []);
 
   const writeGuestFavorites = useCallback((list) => {
@@ -37,7 +60,8 @@ export function useFavorites() {
 
     setLoading(true);
 
-    // Eski localStorage verisini tek seferlik Firestore'a taşır.
+    // Legacy localStorage → Firestore migration. Pre-existing entries are
+    // assumed to be movies (the only thing the app supported before).
     const legacyKey = `movie_favorites_${user.uid}`;
     const legacy = JSON.parse(localStorage.getItem(legacyKey) || '[]');
     const guest = readGuestFavorites();
@@ -46,14 +70,12 @@ export function useFavorites() {
     if (toMigrate.length > 0) {
       Promise.all(
         toMigrate.map((movie) => {
-          const ref = doc(db, 'users', user.uid, 'favorites', String(movie.id));
+          const item = { ...movie, media_type: movie.media_type || 'movie' };
+          const ref = doc(db, 'users', user.uid, 'favorites', mediaDocId(item.id, item.media_type));
           return setDoc(
             ref,
             {
-              id: movie.id,
-              title: movie.title,
-              poster_path: movie.poster_path,
-              vote_average: movie.vote_average,
+              ...buildPayload(item),
               updatedAt: serverTimestamp(),
             },
             { merge: true },
@@ -71,10 +93,17 @@ export function useFavorites() {
     const unsub = onSnapshot(
       q,
       (snapshot) => {
-        const list = snapshot.docs.map((item) => ({
-          id: Number(item.id),
-          ...item.data(),
-        }));
+        const list = snapshot.docs.map((item) => {
+          const data = item.data();
+          const parsed = parseMediaDocId(item.id);
+          const mediaType = data.media_type || parsed.mediaType;
+          return {
+            ...data,
+            id: data.id ?? parsed.id,
+            media_type: mediaType,
+            docId: item.id,
+          };
+        });
         setFavorites(list);
         setLoading(false);
       },
@@ -89,27 +118,22 @@ export function useFavorites() {
 
   const toggleFavorite = useCallback(
     async (movie) => {
-      const exists = favorites.some((f) => f.id === movie.id);
-
-      const payload = {
-        id: movie.id,
-        title: movie.title,
-        poster_path: movie.poster_path,
-        vote_average: movie.vote_average,
-        ...(movie.genre_ids?.length ? { genre_ids: movie.genre_ids } : {}),
-      };
+      const mediaType = getMediaType(movie);
+      const docId = mediaDocId(movie.id, mediaType);
+      const exists = favorites.some((f) => f.docId === docId);
+      const payload = buildPayload(movie);
 
       if (!user) {
         if (exists) {
-          writeGuestFavorites(favorites.filter((f) => f.id !== movie.id));
+          writeGuestFavorites(favorites.filter((f) => f.docId !== docId));
         } else {
-          writeGuestFavorites([...favorites, payload]);
+          writeGuestFavorites([...favorites, { ...payload, docId }]);
         }
         return;
       }
 
-      const ref = doc(db, 'users', user.uid, 'favorites', String(movie.id));
-      const fanRef = doc(db, 'movies', String(movie.id), 'likedBy', user.uid);
+      const ref = doc(db, 'users', user.uid, 'favorites', docId);
+      const fanRef = doc(db, mediaCollection(mediaType), String(movie.id), 'likedBy', user.uid);
       if (exists) {
         await deleteDoc(ref);
         await deleteDoc(fanRef);
@@ -126,8 +150,12 @@ export function useFavorites() {
     [favorites, user, writeGuestFavorites],
   );
 
-  const isFavorite = (id) => favorites.some((f) => f.id === id);
+  // Accepts either a docId string ("123" or "tv_456") or a numeric id (legacy
+  // movie callers). Numeric callers implicitly target movies.
+  const isFavorite = (idOrDocId) => {
+    const docId = typeof idOrDocId === 'number' ? String(idOrDocId) : idOrDocId;
+    return favorites.some((f) => f.docId === docId);
+  };
 
   return { favorites, loading, toggleFavorite, isFavorite };
 }
-

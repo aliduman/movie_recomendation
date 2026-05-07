@@ -5,6 +5,7 @@ import { FiBookmark, FiCheck, FiPlus, FiX } from 'react-icons/fi';
 import { poster } from '../config/tmdb';
 import { useWatchlists } from '../hooks/useWatchlist';
 import { useTranslation } from 'react-i18next';
+import { getTitle } from '../utils/media';
 
 export default function WatchlistSelector({ movie, onClose }) {
   const { t } = useTranslation();
@@ -37,7 +38,7 @@ export default function WatchlistSelector({ movie, onClose }) {
     const loadMembership = async () => {
       setCheckingMembership(true);
       try {
-        const ids = await getMovieWatchlistIds(movie.id);
+        const ids = await getMovieWatchlistIds(movie);
         if (active) {
           setSelectedIds(ids);
         }
@@ -53,7 +54,7 @@ export default function WatchlistSelector({ movie, onClose }) {
     return () => {
       active = false;
     };
-  }, [getMovieWatchlistIds, movie.id]);
+  }, [getMovieWatchlistIds, movie]);
 
   const submitList = async (watchlistId) => {
     setSubmittingId(watchlistId);
@@ -127,7 +128,7 @@ export default function WatchlistSelector({ movie, onClose }) {
           <div className="flex items-start gap-4 px-5 py-4 border-b border-white/10">
             <div className="w-14 h-20 rounded-2xl overflow-hidden bg-dark flex-shrink-0">
               {movie.poster_path ? (
-                <img src={poster(movie.poster_path)} alt={movie.title} className="w-full h-full object-cover" />
+                <img src={poster(movie.poster_path)} alt={getTitle(movie)} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-2xl">🎬</div>
               )}
@@ -135,7 +136,7 @@ export default function WatchlistSelector({ movie, onClose }) {
 
             <div className="min-w-0 flex-1">
               <p className="text-xs uppercase tracking-[0.2em] text-primary/80">{t('watchlist.selectorTitle')}</p>
-              <h3 className="mt-1 text-lg font-bold line-clamp-2">{movie.title}</h3>
+              <h3 className="mt-1 text-lg font-bold line-clamp-2">{getTitle(movie)}</h3>
               <p className="mt-2 text-sm text-gray-400">{t('watchlist.selectorSubtitle')}</p>
             </div>
 

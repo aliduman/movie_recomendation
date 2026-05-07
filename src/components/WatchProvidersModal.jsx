@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiX } from 'react-icons/fi';
 import tmdb, { providerLogo, poster } from '../config/tmdb';
+import { getMediaType, getTitle } from '../utils/media';
 
 const GoogleIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
@@ -114,19 +115,22 @@ export default function WatchProvidersModal({ movie, onClose }) {
   const [loading, setLoading] = useState(true);
   const [region, setRegion] = useState('TR');
   const [enTitle, setEnTitle] = useState('');
+  const mediaType = getMediaType(movie);
+  const base = mediaType === 'tv' ? 'tv' : 'movie';
+  const movieTitle = getTitle(movie);
 
   useEffect(() => {
     if (!movie?.id) return;
     setLoading(true);
     setEnTitle('');
     tmdb
-      .get(`/movie/${movie.id}/watch/providers`)
+      .get(`/${base}/${movie.id}/watch/providers`)
       .then(({ data }) => setProviders(data?.results || {}))
       .finally(() => setLoading(false));
     tmdb
-      .get(`/movie/${movie.id}`, { params: { language: 'en-US' } })
-      .then(({ data }) => setEnTitle(data.title || ''));
-  }, [movie?.id]);
+      .get(`/${base}/${movie.id}`, { params: { language: 'en-US' } })
+      .then(({ data }) => setEnTitle(data.title || data.name || ''));
+  }, [movie?.id, base]);
 
   useEffect(() => {
     if (!providers) return;
@@ -181,13 +185,13 @@ export default function WatchProvidersModal({ movie, onClose }) {
               {movie?.poster_path && (
                 <img
                   src={poster(movie.poster_path)}
-                  alt={movie.title}
+                  alt={movieTitle}
                   className="w-16 h-24 rounded-xl object-cover shadow-xl flex-shrink-0 border border-white/10"
                 />
               )}
               <div className="min-w-0">
                 <p className="text-xs text-gray-400 mb-1">Nerede İzlenir?</p>
-                <h2 className="text-lg font-bold leading-tight line-clamp-2">{movie?.title}</h2>
+                <h2 className="text-lg font-bold leading-tight line-clamp-2">{movieTitle}</h2>
               </div>
             </div>
           </div>
@@ -227,23 +231,23 @@ export default function WatchProvidersModal({ movie, onClose }) {
                     ? 'Bu film için platform bilgisi bulunamadı.'
                     : 'Seçilen bölgede platform bilgisi yok.'}
                 </p>
-                <GoogleSearchButton title={movie.title} />
+                <GoogleSearchButton title={movieTitle} />
                 <div className="mt-2">
-                  <HDFilmButton title={enTitle || movie.title} />
+                  <HDFilmButton title={enTitle || movieTitle} />
                 </div>
               </div>
             )}
 
             {!loading && data && (
               <>
-                <ProviderGroup title="Abonelikle İzle" icon="▶️" items={data.flatrate} jwLink={jwLink} movieTitle={movie?.title} />
-                <ProviderGroup title="Kirala" icon="🎟️" items={data.rent} jwLink={jwLink} movieTitle={movie?.title} />
-                <ProviderGroup title="Satın Al" icon="🛒" items={data.buy} jwLink={jwLink} movieTitle={movie?.title} />
-                <ProviderGroup title="Ücretsiz" icon="🆓" items={data.free} jwLink={jwLink} movieTitle={movie?.title} />
-                <ProviderGroup title="Reklam Destekli" icon="📢" items={data.ads} jwLink={jwLink} movieTitle={movie?.title} />
+                <ProviderGroup title="Abonelikle İzle" icon="▶️" items={data.flatrate} jwLink={jwLink} movieTitle={movieTitle} />
+                <ProviderGroup title="Kirala" icon="🎟️" items={data.rent} jwLink={jwLink} movieTitle={movieTitle} />
+                <ProviderGroup title="Satın Al" icon="🛒" items={data.buy} jwLink={jwLink} movieTitle={movieTitle} />
+                <ProviderGroup title="Ücretsiz" icon="🆓" items={data.free} jwLink={jwLink} movieTitle={movieTitle} />
+                <ProviderGroup title="Reklam Destekli" icon="📢" items={data.ads} jwLink={jwLink} movieTitle={movieTitle} />
 
                 <a
-                  href={`https://www.google.com/search?q=${encodeURIComponent(`${movie?.title} filmini izle`)}`}
+                  href={`https://www.google.com/search?q=${encodeURIComponent(`${movieTitle} ${mediaType === 'tv' ? 'dizisini izle' : 'filmini izle'}`)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-center gap-2.5 w-full px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors font-medium text-sm"
@@ -251,7 +255,7 @@ export default function WatchProvidersModal({ movie, onClose }) {
                   <GoogleIcon />
                   Google'da tüm izleme seçeneklerini ara
                 </a>
-                <HDFilmButton title={enTitle || movie?.title} />
+                <HDFilmButton title={enTitle || movieTitle} />
               </>
             )}
           </div>

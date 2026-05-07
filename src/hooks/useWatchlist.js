@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
+import { getMediaType, getReleaseDate, getTitle, mediaDocId, parseMediaDocId } from '../utils/media';
 
 const DEFAULT_WATCHLIST_NAME = 'İzlenecekler';
 
@@ -23,11 +24,16 @@ function normalizeMovie(movie) {
     ? movie.genre_ids
     : movie.genres?.map((genre) => genre.id).filter(Boolean) || [];
 
+  const mediaType = getMediaType(movie);
+
   return {
     id: movie.id,
-    title: movie.title,
+    media_type: mediaType,
+    title: getTitle(movie),
+    name: movie.name || null,
     poster_path: movie.poster_path || null,
     vote_average: movie.vote_average || 0,
+    release_date: getReleaseDate(movie) || null,
     ...(genreIds.length ? { genre_ids: genreIds } : {}),
   };
 }
@@ -165,7 +171,7 @@ export function useWatchlists() {
 
       const payload = normalizeMovie(movie);
       const watchlistRef = doc(db, 'users', user.uid, 'watchlists', watchlistId);
-      const movieRef = doc(watchlistRef, 'movies', String(payload.id));
+      const movieRef = doc(watchlistRef, 'movies', mediaDocId(payload.id, payload.media_type));
       const movieSnapshot = await getDoc(movieRef);
 
       if (movieSnapshot.exists()) {
@@ -195,8 +201,12 @@ export function useWatchlists() {
   );
 
   const getMovieWatchlistIds = useCallback(
-    async (movieId) => {
+    async (movieIdOrItem, mediaType) => {
       if (!user || !watchlists.length) return [];
+
+      const docId = typeof movieIdOrItem === 'object'
+        ? mediaDocId(movieIdOrItem)
+        : mediaDocId(movieIdOrItem, mediaType || 'movie');
 
       const listIds = await Promise.all(
         watchlists.map(async (watchlist) => {
@@ -207,7 +217,7 @@ export function useWatchlists() {
             'watchlists',
             watchlist.id,
             'movies',
-            String(movieId),
+            docId,
           );
           const snapshot = await getDoc(movieRef);
           return snapshot.exists() ? watchlist.id : null;
@@ -273,7 +283,18 @@ export function useWatchlistDetail(watchlistId) {
     const unsubscribeMovies = onSnapshot(
       moviesRef,
       (snapshot) => {
-        setMovies(snapshot.docs.map((item) => ({ id: Number(item.id), ...item.data() })));
+        setMovies(
+          snapshot.docs.map((item) => {
+            const data = item.data();
+            const parsed = parseMediaDocId(item.id);
+            return {
+              ...data,
+              id: data.id ?? parsed.id,
+              media_type: data.media_type || parsed.mediaType,
+              docId: item.id,
+            };
+          }),
+        );
         moviesLoaded = true;
         finishLoading();
       },

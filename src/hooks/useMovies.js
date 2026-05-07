@@ -34,8 +34,11 @@ export function useMovies() {
     return [...prev, ...filtered];
   };
 
+  // /trending/all and /search/multi can return people; UI only renders movie/tv.
+  const stripPeople = (results) => results.filter((item) => item.media_type !== 'person');
+
   const runPagedRequest = useCallback(
-    async ({ endpoint, params = {}, pageNum = 1, append = false }) => {
+    async ({ endpoint, params = {}, pageNum = 1, append = false, filterPeople = false }) => {
       if (append) setLoadingMore(true);
       else setLoading(true);
 
@@ -47,7 +50,8 @@ export function useMovies() {
           },
         });
 
-        const results = data.results || [];
+        const raw = data.results || [];
+        const results = filterPeople ? stripPeople(raw) : raw;
         setMovies((prev) => (append ? mergeUniqueById(prev, results) : results));
         setPage(pageNum);
         setTotalPages(data.total_pages || 1);
@@ -63,7 +67,7 @@ export function useMovies() {
     setMode('trending');
     setSelectedGenreId(null);
     setSearchQuery('');
-    await runPagedRequest({ endpoint: '/trending/movie/week', pageNum: 1 });
+    await runPagedRequest({ endpoint: '/trending/all/week', pageNum: 1, filterPeople: true });
   }, [runPagedRequest]);
 
   const fetchByGenre = useCallback(async (genreId, pageNum = 1) => {
@@ -87,9 +91,10 @@ export function useMovies() {
     setSelectedGenreId(null);
     setSearchQuery(query);
     await runPagedRequest({
-      endpoint: '/search/movie',
+      endpoint: '/search/multi',
       params: { query },
       pageNum: 1,
+      filterPeople: true,
     });
   }, [runPagedRequest]);
 
@@ -100,9 +105,10 @@ export function useMovies() {
 
     if (mode === 'trending') {
       await runPagedRequest({
-        endpoint: '/trending/movie/week',
+        endpoint: '/trending/all/week',
         pageNum: nextPage,
         append: true,
+        filterPeople: true,
       });
       return;
     }
@@ -122,10 +128,11 @@ export function useMovies() {
 
     if (mode === 'search' && searchQuery) {
       await runPagedRequest({
-        endpoint: '/search/movie',
+        endpoint: '/search/multi',
         params: { query: searchQuery },
         pageNum: nextPage,
         append: true,
+        filterPeople: true,
       });
     }
   }, [hasMore, loading, loadingMore, mode, page, runPagedRequest, searchQuery, selectedGenreId]);
@@ -143,7 +150,7 @@ export function useMovies() {
   };
 }
 
-export function useMovieDetail(id) {
+export function useMovieDetail(id, mediaType = 'movie') {
   const [movie, setMovie] = useState(null);
   const [credits, setCredits] = useState(null);
   const [providers, setProviders] = useState(null);
@@ -153,6 +160,7 @@ export function useMovieDetail(id) {
   const [loadingMoreSimilar, setLoadingMoreSimilar] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const base = mediaType === 'tv' ? 'tv' : 'movie';
   const similarHasMore = similarPage < similarTotalPages;
 
   // Refs to read current values inside the stable callback without adding them to deps
@@ -176,35 +184,37 @@ export function useMovieDetail(id) {
     setSimilarPage(1);
     setSimilarTotalPages(1);
     Promise.all([
-      tmdb.get(`/movie/${id}`, { params: { append_to_response: 'videos' } }),
-      tmdb.get(`/movie/${id}/credits`),
-      tmdb.get(`/movie/${id}/watch/providers`),
-      tmdb.get(`/movie/${id}/similar`, { params: { page: 1 } }),
+      tmdb.get(`/${base}/${id}`, { params: { append_to_response: 'videos' } }),
+      tmdb.get(`/${base}/${id}/credits`),
+      tmdb.get(`/${base}/${id}/watch/providers`),
+      tmdb.get(`/${base}/${id}/similar`, { params: { page: 1 } }),
     ])
       .then(([movieRes, creditsRes, providersRes, similarRes]) => {
-        setMovie(movieRes.data);
+        // Stamp media_type so downstream code (favorites, share, etc.) doesn't have to re-derive it.
+        setMovie({ ...movieRes.data, media_type: base });
         setCredits(creditsRes.data);
         setProviders(providersRes.data?.results || null);
-        setSimilar(similarRes.data.results || []);
+        setSimilar((similarRes.data.results || []).map((s) => ({ ...s, media_type: base })));
         setSimilarPage(1);
         setSimilarTotalPages(similarRes.data.total_pages || 1);
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, base]);
 
   const loadMoreSimilar = useCallback(async () => {
     if (loadingMoreSimilarRef.current || !similarHasMoreRef.current) return;
     const nextPage = similarPageRef.current + 1;
     setLoadingMoreSimilar(true);
     try {
-      const { data } = await tmdb.get(`/movie/${id}/similar`, { params: { page: nextPage } });
-      setSimilar((prev) => mergeUniqueById(prev, data.results || []));
+      const { data } = await tmdb.get(`/${base}/${id}/similar`, { params: { page: nextPage } });
+      const stamped = (data.results || []).map((s) => ({ ...s, media_type: base }));
+      setSimilar((prev) => mergeUniqueById(prev, stamped));
       setSimilarPage(nextPage);
       setSimilarTotalPages(data.total_pages || 1);
     } finally {
       setLoadingMoreSimilar(false);
     }
-  }, [id]);
+  }, [id, base]);
 
   return { movie, credits, providers, similar, similarHasMore, loadingMoreSimilar, loadMoreSimilar, loading };
 }

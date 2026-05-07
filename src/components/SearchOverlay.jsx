@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch, FiX, FiStar } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import tmdb, { poster } from '../config/tmdb';
+import { buildDetailPath, getMediaType, getReleaseDate, getTitle } from '../utils/media';
 
 function useDebounce(value, delay = 350) {
   const [debounced, setDebounced] = useState(value);
@@ -14,6 +16,7 @@ function useDebounce(value, delay = 350) {
 }
 
 export default function SearchOverlay({ onClose }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -34,8 +37,11 @@ export default function SearchOverlay({ onClose }) {
     if (debounced.length < 3) { setResults([]); return; }
     setLoading(true);
     tmdb
-      .get('/search/movie', { params: { query: debounced, page: 1 } })
-      .then(({ data }) => setResults(data.results?.slice(0, 8) || []))
+      .get('/search/multi', { params: { query: debounced, page: 1 } })
+      .then(({ data }) => {
+        const filtered = (data.results || []).filter((r) => r.media_type !== 'person');
+        setResults(filtered.slice(0, 8));
+      })
       .finally(() => setLoading(false));
   }, [debounced]);
 
@@ -112,48 +118,64 @@ export default function SearchOverlay({ onClose }) {
                 exit={{ opacity: 0, y: 8 }}
                 className="mt-3 bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
               >
-                {results.map((movie, i) => (
-                  <Link
-                    key={movie.id}
-                    to={`/movie/${movie.id}`}
-                    onClick={onClose}
-                    className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
-                  >
-                    {/* Poster */}
-                    <div className="flex-shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-dark">
-                      {movie.poster_path ? (
-                        <img
-                          src={poster(movie.poster_path)}
-                          alt={movie.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-lg">🎬</div>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">{movie.title}</p>
-                      <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
-                        {movie.release_date && (
-                          <span>{movie.release_date.slice(0, 4)}</span>
-                        )}
-                        {movie.vote_average > 0 && (
-                          <span className="flex items-center gap-1 text-secondary">
-                            <FiStar size={10} className="fill-secondary" />
-                            {movie.vote_average.toFixed(1)}
-                          </span>
-                        )}
-                        {movie.genre_ids?.length > 0 && (
-                          <span className="truncate">{movie.genre_ids.slice(0, 2).join(', ')}</span>
+                {results.map((movie) => {
+                  const mediaType = getMediaType(movie);
+                  const title = getTitle(movie);
+                  const releaseDate = getReleaseDate(movie);
+                  return (
+                    <Link
+                      key={`${mediaType}-${movie.id}`}
+                      to={buildDetailPath(movie)}
+                      onClick={onClose}
+                      className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                    >
+                      {/* Poster */}
+                      <div className="flex-shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-dark">
+                        {movie.poster_path ? (
+                          <img
+                            src={poster(movie.poster_path)}
+                            alt={title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-lg">🎬</div>
                         )}
                       </div>
-                    </div>
 
-                    <span className="text-gray-600 text-xs flex-shrink-0">→</span>
-                  </Link>
-                ))}
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm truncate">{title}</p>
+                          <span
+                            className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                              mediaType === 'tv'
+                                ? 'bg-purple-600/30 text-purple-200'
+                                : 'bg-primary/30 text-primary'
+                            }`}
+                          >
+                            {t(mediaType === 'tv' ? 'badge.tv' : 'badge.movie')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
+                          {releaseDate && (
+                            <span>{releaseDate.slice(0, 4)}</span>
+                          )}
+                          {movie.vote_average > 0 && (
+                            <span className="flex items-center gap-1 text-secondary">
+                              <FiStar size={10} className="fill-secondary" />
+                              {movie.vote_average.toFixed(1)}
+                            </span>
+                          )}
+                          {movie.genre_ids?.length > 0 && (
+                            <span className="truncate">{movie.genre_ids.slice(0, 2).join(', ')}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <span className="text-gray-600 text-xs flex-shrink-0">→</span>
+                    </Link>
+                  );
+                })}
               </motion.div>
             )}
           </AnimatePresence>

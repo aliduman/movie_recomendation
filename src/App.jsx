@@ -64,7 +64,7 @@ export default function App() {
     return () => clearTimeout(t);
   }, []);
   const location = useLocation();
-  const isDetailPage = /^\/movie\//.test(location.pathname);
+  const isDetailPage = /^\/(movie|tv)\//.test(location.pathname);
   const { showBanner, requestPermission, dismiss } = useFCM();
 
   useEffect(() => {
@@ -92,6 +92,7 @@ export default function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/movie/:id" element={<MovieDetailPage />} />
+              <Route path="/tv/:id" element={<MovieDetailPage />} />
               <Route path="/person/:id" element={<ActorDetailPage />} />
               <Route path="/profile/:uid" element={<ProfilePage />} />
               <Route path="/privacy" element={<PrivacyPage />} />

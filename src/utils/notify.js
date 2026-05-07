@@ -17,4 +17,4 @@ async function post(path, body) {
 
 export const notifyFollow = (targetUid) => post('/notify/follow', { targetUid });
 export const notifyDM = (recipientUid, text) => post('/notify/dm', { recipientUid, text });
-export const notifyChat = (movieId, text) => post('/notify/chat', { movieId, text });
+export const notifyChat = (movieId, text, mediaType = 'movie') => post('/notify/chat', { movieId, text, mediaType });

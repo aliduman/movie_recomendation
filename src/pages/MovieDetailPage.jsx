@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2, FiExternalLink, FiBookmark } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { useFavorites } from '../hooks/useFavorites';
 import { useMovieFans } from '../hooks/useMovieFans';
 import { useAuth } from '../contexts/AuthContext';
 import { backdrop, poster, profile } from '../config/tmdb';
+import { getReleaseDate, getTitle, mediaDocId } from '../utils/media';
 import MovieCard from '../components/MovieCard';
 import WatchProvidersModal from '../components/WatchProvidersModal';
 import MovieComments from '../components/MovieComments';
@@ -18,9 +19,11 @@ import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 export default function MovieDetailPage() {
   const { id } = useParams();
-  const { movie, credits, similar, similarHasMore, loadingMoreSimilar, loadMoreSimilar, loading } = useMovieDetail(id);
+  const location = useLocation();
+  const mediaType = location.pathname.startsWith('/tv/') ? 'tv' : 'movie';
+  const { movie, credits, similar, similarHasMore, loadingMoreSimilar, loadMoreSimilar, loading } = useMovieDetail(id, mediaType);
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { fans } = useMovieFans(id);
+  const { fans } = useMovieFans(id, mediaType);
   const { user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -44,8 +47,12 @@ export default function MovieDetailPage() {
     );
   }
 
-  const fav = isFavorite(movie.id);
+  const fav = isFavorite(mediaDocId(movie.id, mediaType));
+  const title = getTitle(movie);
+  const releaseYear = getReleaseDate(movie).slice(0, 4);
+  const runtime = mediaType === 'tv' ? movie.episode_run_time?.[0] : movie.runtime;
   const director = credits?.crew?.find((c) => c.job === 'Director');
+  const creator = movie.created_by?.[0];
   const cast = credits?.cast?.slice(0, 6) || [];
   const trailer = movie.videos?.results?.find((v) => v.type === 'Trailer' && v.site === 'YouTube');
 
@@ -75,7 +82,7 @@ export default function MovieDetailPage() {
           >
             <img
               src={poster(movie.poster_path)}
-              alt={movie.title}
+              alt={title}
               className="w-64 rounded-2xl shadow-2xl shadow-primary/10"
             />
           </motion.div>
@@ -87,7 +94,18 @@ export default function MovieDetailPage() {
             transition={{ delay: 0.3 }}
             className="flex-1"
           >
-            <h1 className="text-3xl sm:text-5xl font-extrabold">{movie.title}</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-5xl font-extrabold">{title}</h1>
+              <span
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${
+                  mediaType === 'tv'
+                    ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40'
+                    : 'bg-primary/30 text-primary border border-primary/40'
+                }`}
+              >
+                {t(mediaType === 'tv' ? 'badge.tv' : 'badge.movie')}
+              </span>
+            </div>
             {movie.tagline && (
               <p className="text-primary/80 italic mt-2">"{movie.tagline}"</p>
             )}
@@ -96,13 +114,23 @@ export default function MovieDetailPage() {
               <span className="flex items-center gap-1 text-secondary">
                 <FiStar className="fill-secondary" /> {movie.vote_average?.toFixed(1)}
               </span>
-              <span className="flex items-center gap-1">
-                <FiClock size={14} /> {movie.runtime} dk
-              </span>
-              <span className="flex items-center gap-1">
-                <FiCalendar size={14} /> {movie.release_date?.slice(0, 4)}
-              </span>
+              {runtime ? (
+                <span className="flex items-center gap-1">
+                  <FiClock size={14} /> {runtime} dk
+                </span>
+              ) : null}
+              {mediaType === 'tv' && movie.number_of_seasons ? (
+                <span className="flex items-center gap-1">
+                  📺 {movie.number_of_seasons} sezon · {movie.number_of_episodes} bölüm
+                </span>
+              ) : null}
+              {releaseYear && (
+                <span className="flex items-center gap-1">
+                  <FiCalendar size={14} /> {releaseYear}
+                </span>
+              )}
               {director && <span>🎬 {director.name}</span>}
+              {!director && creator && <span>🎬 {creator.name}</span>}
             </div>
 
             <div className="flex flex-wrap gap-2 mt-4">
@@ -245,7 +273,7 @@ export default function MovieDetailPage() {
           </section>
         )}
 
-        <MovieComments movieId={movie.id} movieTitle={movie.title} />
+        <MovieComments movieId={movie.id} movieTitle={title} mediaType={mediaType} />
 
         {/* Benzer Filmler */}
         {similar.length > 0 && (
@@ -301,7 +329,7 @@ export default function MovieDetailPage() {
         )}
       </AnimatePresence>
 
-      <MovieChat movieId={movie.id} movieTitle={movie.title} />
+      <MovieChat movieId={movie.id} movieTitle={title} mediaType={mediaType} />
 
       <AnimatePresence>
         {trailerOpen && trailer && (
@@ -324,7 +352,7 @@ export default function MovieDetailPage() {
               <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl relative">
                 <iframe
                   src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
-                  title={`${movie.title} Fragman`}
+                  title={`${title} Fragman`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="w-full h-full"
@@ -380,7 +408,7 @@ export default function MovieDetailPage() {
               <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black">
                 <iframe
                   src={`https://www.playimdb.com/title/${movie.imdb_id}/`}
-                  title={movie.title}
+                  title={title}
                   allowFullScreen
                   className="w-full h-full"
                 />

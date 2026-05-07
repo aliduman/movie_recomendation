@@ -152,10 +152,10 @@ function ChatMessage({ msg, isMe, onDelete, onUpdate, bg, editingId, setEditingI
   );
 }
 
-function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
+function ChatPanel({ movieId, movieTitle, mediaType, onClose, isMobile }) {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { messages, loading, sendMessage, markSeen, closeSeen, deleteMessage, updateMessage } = useChat(movieId, movieTitle);
+  const { messages, loading, sendMessage, markSeen, closeSeen, deleteMessage, updateMessage } = useChat(movieId, movieTitle, mediaType);
   const [text, setText] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [vpHeight, setVpHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
@@ -307,9 +307,9 @@ function ChatPanel({ movieId, movieTitle, onClose, isMobile }) {
   );
 }
 
-export default function MovieChat({ movieId, movieTitle }) {
+export default function MovieChat({ movieId, movieTitle, mediaType = 'movie' }) {
   const [open, setOpen] = useState(false);
-  const { unread } = useChat(movieId);
+  const { unread } = useChat(movieId, movieTitle, mediaType);
   const { t } = useTranslation();
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
@@ -350,6 +350,7 @@ export default function MovieChat({ movieId, movieTitle }) {
             <ChatPanel
               movieId={movieId}
               movieTitle={movieTitle}
+              mediaType={mediaType}
               onClose={() => setOpen(false)}
               isMobile={false}
             />

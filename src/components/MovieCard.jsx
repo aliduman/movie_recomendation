@@ -2,8 +2,10 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiStar, FiTv } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import { poster } from '../config/tmdb';
 import { useFavorites } from '../hooks/useFavorites';
+import { buildDetailPath, getMediaType, getTitle, mediaDocId } from '../utils/media';
 import WatchProvidersModal from './WatchProvidersModal';
 import ShareModal from './ShareModal';
 
@@ -11,8 +13,11 @@ const supportsHover =
   typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
 export default function MovieCard({ movie, tourId }) {
+  const { t } = useTranslation();
   const { toggleFavorite, isFavorite } = useFavorites();
-  const fav = isFavorite(movie.id);
+  const mediaType = getMediaType(movie);
+  const title = getTitle(movie);
+  const fav = isFavorite(mediaDocId(movie.id, mediaType));
   const [showProviders, setShowProviders] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
@@ -61,12 +66,12 @@ export default function MovieCard({ movie, tourId }) {
         onPointerCancel={cancelLongPress}
         onPointerMove={checkMove}
       >
-        <Link to={`/movie/${movie.id}`} className="block" onClick={handleLinkClick}>
+        <Link to={buildDetailPath(movie)} className="block" onClick={handleLinkClick}>
           <div className="relative overflow-hidden rounded-2xl aspect-[2/3] bg-dark">
             {movie.poster_path ? (
               <img
                 src={poster(movie.poster_path)}
-                alt={movie.title}
+                alt={title}
                 loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
@@ -76,12 +81,23 @@ export default function MovieCard({ movie, tourId }) {
               </div>
             )}
 
+            {/* Media-type badge */}
+            <span
+              className={`absolute top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide backdrop-blur-md ${
+                mediaType === 'tv'
+                  ? 'bg-purple-600/80 text-white'
+                  : 'bg-primary/80 text-white'
+              }`}
+            >
+              {t(mediaType === 'tv' ? 'badge.tv' : 'badge.movie')}
+            </span>
+
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-300" />
 
             {/* Hover info */}
             <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100 transition-all duration-300">
-              <h3 className="text-sm font-bold line-clamp-2">{movie.title}</h3>
+              <h3 className="text-sm font-bold line-clamp-2">{title}</h3>
               <div className="flex items-center gap-1 mt-1 text-secondary text-xs">
                 <FiStar className="fill-secondary" size={12} />
                 <span>{movie.vote_average?.toFixed(1)}</span>

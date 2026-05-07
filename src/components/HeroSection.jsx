@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion'
 import { FiPlay, FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import tmdb, { backdrop } from '../config/tmdb';
+import { buildDetailPath, getTitle } from '../utils/media';
 
 export default function HeroSection() {
   const [movies, setMovies] = useState([]);
@@ -15,8 +16,9 @@ export default function HeroSection() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    tmdb.get('/trending/movie/day').then(({ data }) => {
-      setMovies(data.results.slice(0, 5));
+    tmdb.get('/trending/all/day').then(({ data }) => {
+      const results = (data.results || []).filter((m) => m.media_type !== 'person');
+      setMovies(results.slice(0, 5));
     });
   }, []);
 
@@ -108,14 +110,14 @@ export default function HeroSection() {
                 </span>
               </div>
               <h1 className="text-3xl sm:text-6xl font-extrabold max-w-2xl leading-tight">
-                {movie.title}
+                {getTitle(movie)}
               </h1>
               <p className="mt-4 text-gray-300 max-w-xl line-clamp-2 sm:line-clamp-3 text-sm sm:text-base">
                 {movie.overview}
               </p>
               <div className="flex items-center gap-3 mt-5 sm:mt-6 pointer-events-auto">
                 <Link
-                  to={`/movie/${movie.id}`}
+                  to={buildDetailPath(movie)}
                   onClick={(e) => dragged.current && e.preventDefault()}
                   className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/80 rounded-xl font-semibold transition-colors"
                 >

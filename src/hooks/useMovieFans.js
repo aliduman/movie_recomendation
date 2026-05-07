@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, orderBy, query, limit } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { mediaCollection } from '../utils/media';
 
-export function useMovieFans(movieId) {
+export function useMovieFans(movieId, mediaType = 'movie') {
   const [fans, setFans] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!movieId) { setLoading(false); return; }
     const q = query(
-      collection(db, 'movies', String(movieId), 'likedBy'),
+      collection(db, mediaCollection(mediaType), String(movieId), 'likedBy'),
       orderBy('likedAt', 'desc'),
       limit(20),
     );
@@ -18,7 +19,7 @@ export function useMovieFans(movieId) {
       setLoading(false);
     }, () => { setFans([]); setLoading(false); });
     return () => unsub();
-  }, [movieId]);
+  }, [movieId, mediaType]);
 
   return { fans, loading };
 }

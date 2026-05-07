@@ -94,7 +94,7 @@ export default function WatchlistDetailPage() {
         <section className="mt-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {movies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
+              <MovieCard key={movie.docId || movie.id} movie={movie} />
             ))}
           </div>
         </section>
