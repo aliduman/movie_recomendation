@@ -14,6 +14,7 @@ import ProfilePage from './pages/ProfilePage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import LoginPage from './pages/LoginPage';
+import WatchlistPage from './pages/WatchlistPage';
 import RecommendationWizard from './components/RecommendationWizard';
 import Footer from './components/Footer';
 import { useFCM } from './hooks/useFCM.jsx';
@@ -93,6 +94,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <FavoritesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/watchlist"
+              element={
+                <ProtectedRoute>
+                  <WatchlistPage />
                 </ProtectedRoute>
               }
             />

@@ -4,7 +4,10 @@
     "explore": "Explore",
     "favorites": "Favorites",
     "search": "Search",
-    "login": "Login"
+    "login": "Login",
+    "profile": "Profile",
+    "watchlist": "My Watchlist",
+    "logout": "Log Out"
   },
   "hero": {
     "trend": "Trending",
@@ -40,7 +43,9 @@
     "cast": "Cast",
     "fans": "People Who Love This Movie",
     "similar": "Similar Movies",
-    "people": "people"
+    "people": "people",
+    "addWatchlist": "Add to Watchlist",
+    "removeWatchlist": "Remove from Watchlist"
   },
   "profile": {
     "followers": "followers",
@@ -82,6 +87,14 @@
   },
   "wizard": {
     "button": "Find Me a Movie!"
+  },
+  "watchlist": {
+    "title": "My Watchlist",
+    "subtitle": "watchlist",
+    "empty": "No movies in your watchlist yet.",
+    "emptyHint": "Tap the bookmark button on a movie detail page to add movies to your watchlist!",
+    "all": "All",
+    "noneInCategory": "No movies in this category."
   },
   "tour": {
     "hero_title": "🎬 Trending Movies",
