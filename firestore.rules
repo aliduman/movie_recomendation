@@ -143,7 +143,8 @@ service cloud.firestore {
       match /watchlists/{watchlistId} {
         allow read, write: if isOwner(userId);
 
-        // Her watchlist altındaki tüm alt koleksiyonlar (movies vb.)
+        // Watchlist olusturma/ekleme akisinda owner'in tum alt dokumanlara yazabilmesi gerekir.
+        // Bu alan sadece users/{uid} altinda ve sadece owner'a acik oldugu icin kapsam guvenlidir.
         match /{document=**} {
           allow read, write: if isOwner(userId);
         }
