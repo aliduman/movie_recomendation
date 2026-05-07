@@ -15,6 +15,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import LoginPage from './pages/LoginPage';
 import WatchlistPage from './pages/WatchlistPage';
+import WatchlistDetailPage from './pages/WatchlistDetailPage';
 import RecommendationWizard from './components/RecommendationWizard';
 import Footer from './components/Footer';
 import { useFCM } from './hooks/useFCM.jsx';
@@ -105,6 +106,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/watchlist/:id"
+              element={
+                <ProtectedRoute>
+                  <WatchlistDetailPage />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </AnimatePresence>
       </div>
@@ -172,4 +181,3 @@ export default function App() {
     </div>
   );
 }
-
