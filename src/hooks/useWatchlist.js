@@ -129,8 +129,10 @@ export function useWatchlists() {
         throw new Error('WATCHLIST_NAME_REQUIRED');
       }
 
+      const normalizedName = trimmed.toLocaleLowerCase('tr-TR');
+
       const duplicate = watchlists.find(
-        (watchlist) => watchlist.name.trim().toLocaleLowerCase('tr-TR') === trimmed.toLocaleLowerCase('tr-TR'),
+        (watchlist) => watchlist.name.trim().toLocaleLowerCase('tr-TR') === normalizedName,
       );
 
       if (duplicate) {

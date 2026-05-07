@@ -81,7 +81,7 @@ export default function WatchlistSelector({ movie, onClose }) {
       const listId = await createWatchlist(newListName);
       if (!listId) return;
       const result = await addMovieToWatchlist(listId, movie);
-      toast.success(t('watchlist.createdAndAdded', { name: result.watchlistName || newListName.trim() }));
+      toast.success(t('watchlist.createdAndAdded', { name: result.watchlistName }));
       onClose();
     } catch (error) {
       if (error.message === 'WATCHLIST_NAME_EXISTS') {
