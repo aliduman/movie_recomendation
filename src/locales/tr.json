@@ -120,7 +120,7 @@
     "noListsHint": "Aşağıdan yeni bir liste oluşturup filmi hemen ekleyebilirsin.",
     "addedToList": "Film \"{{name}}\" listesine eklendi.",
     "alreadyInList": "Film zaten \"{{name}}\" listesinde.",
-    "createdAndAdded": "Liste oluşturuldu ve film eklendi.",
+    "createdAndAdded": "\"{{name}}\" listesi oluşturuldu ve film eklendi.",
     "addedBadge": "Eklendi",
     "addHere": "Bu listeye ekle"
   },

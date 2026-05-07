@@ -88,8 +88,8 @@ export function useWatchlists() {
 
       try {
         await migrateLegacyWatchlist(user.uid);
-      } catch {
-        // sessizce devam et, canlı dinleyici yine kurulacak
+      } catch (error) {
+        console.error('İzleme listesi migrasyonu başarısız oldu:', error);
       }
 
       if (ignore) return;

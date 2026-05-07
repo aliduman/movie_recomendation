@@ -120,7 +120,7 @@
     "noListsHint": "Create one below and add the movie right away.",
     "addedToList": "Movie added to \"{{name}}\".",
     "alreadyInList": "This movie is already in \"{{name}}\".",
-    "createdAndAdded": "Watchlist created and movie added.",
+    "createdAndAdded": "\"{{name}}\" was created and the movie was added.",
     "addedBadge": "Added",
     "addHere": "Add here"
   },
