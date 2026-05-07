@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2, FiExternalLink } from 'react-icons/fi';
+import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2, FiExternalLink, FiBookmark } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import { useMovieDetail } from '../hooks/useMovies';
 import { useFavorites } from '../hooks/useFavorites';
@@ -13,19 +13,28 @@ import WatchProvidersModal from '../components/WatchProvidersModal';
 import MovieComments from '../components/MovieComments';
 import MovieChat from '../components/MovieChat';
 import ShareModal from '../components/ShareModal';
+import WatchlistSelector from '../components/WatchlistSelector';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 export default function MovieDetailPage() {
   const { id } = useParams();
-  const { movie, credits, similar, loading } = useMovieDetail(id);
+  const { movie, credits, similar, similarHasMore, loadingMoreSimilar, loadMoreSimilar, loading } = useMovieDetail(id);
   const { toggleFavorite, isFavorite } = useFavorites();
   const { fans } = useMovieFans(id);
   const { user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [watchOpen, setWatchOpen] = useState(false);
+  const [watchlistSelectorOpen, setWatchlistSelectorOpen] = useState(false);
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [playOpen, setPlayOpen] = useState(false);
+  const [infiniteScrollActive, setInfiniteScrollActive] = useState(false);
+
+  const sentinelRef = useInfiniteScroll({
+    enabled: infiniteScrollActive && similarHasMore && !loadingMoreSimilar,
+    onLoadMore: loadMoreSimilar,
+  });
 
   if (loading || !movie) {
     return (
@@ -120,6 +129,18 @@ export default function MovieDetailPage() {
               >
                 <FiHeart className={fav ? 'fill-red-400' : ''} />
                 {fav ? t('movie.removeFavorite') : t('movie.addFavorite')}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  if (!user) { navigate('/login'); return; }
+                  setWatchlistSelectorOpen(true);
+                }}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-colors glass hover:bg-white/10"
+              >
+                <FiBookmark />
+                {t('movie.addWatchlist')}
               </motion.button>
 
               {trailer && (
@@ -231,10 +252,37 @@ export default function MovieDetailPage() {
           <section className="mt-16 pb-12">
             <h2 className="text-xl font-bold mb-6">🎯 {t('movie.similar')}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {similar.map((m, i) => (
+              {similar.map((m) => (
                 <MovieCard key={m.id} movie={m} />
               ))}
             </div>
+
+            {/* Daha fazla / infinite scroll */}
+            {similarHasMore && !infiniteScrollActive && (
+              <div className="flex justify-center mt-8">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setInfiniteScrollActive(true);
+                    loadMoreSimilar();
+                  }}
+                  className="px-8 py-3 rounded-xl glass hover:bg-white/10 font-semibold transition-colors"
+                >
+                  {t('explore.loadMore')}
+                </motion.button>
+              </div>
+            )}
+
+            {infiniteScrollActive && (
+              <>
+                {loadingMoreSimilar && (
+                  <div className="flex justify-center mt-8">
+                    <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  </div>
+                )}
+                <div ref={sentinelRef} className="h-4" />
+              </>
+            )}
           </section>
         )}
       </div>
@@ -245,6 +293,12 @@ export default function MovieDetailPage() {
 
       <AnimatePresence>
         {shareOpen && <ShareModal movie={movie} onClose={() => setShareOpen(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {watchlistSelectorOpen && (
+          <WatchlistSelector movie={movie} onClose={() => setWatchlistSelectorOpen(false)} />
+        )}
       </AnimatePresence>
 
       <MovieChat movieId={movie.id} movieTitle={movie.title} />
@@ -267,7 +321,7 @@ export default function MovieDetailPage() {
               transition={{ type: 'spring', stiffness: 300, damping: 28 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl">
+              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl relative">
                 <iframe
                   src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
                   title={`${movie.title} Fragman`}
@@ -275,6 +329,23 @@ export default function MovieDetailPage() {
                   allowFullScreen
                   className="w-full h-full"
                 />
+                {user && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setWatchlistSelectorOpen(true);
+                    }}
+                    className="absolute bottom-3 right-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors shadow-lg bg-black/70 text-gray-200 hover:bg-black/90 backdrop-blur-sm"
+                  >
+                    <FiBookmark size={13} />
+                    {t('movie.addWatchlist')}
+                  </motion.button>
+                )}
               </div>
               <button
                 onClick={() => setTrailerOpen(false)}
