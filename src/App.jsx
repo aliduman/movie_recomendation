@@ -1,26 +1,28 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
 import { useChatNotifications } from './hooks/useChatNotifications';
 import Navbar from './components/Navbar';
-import HomePage from './pages/HomePage';
-import ExplorePage from './pages/ExplorePage';
-import MovieDetailPage from './pages/MovieDetailPage';
-import ActorDetailPage from './pages/ActorDetailPage';
-import FavoritesPage from './pages/FavoritesPage';
-import ProfilePage from './pages/ProfilePage';
-import PrivacyPage from './pages/PrivacyPage';
-import TermsPage from './pages/TermsPage';
-import LoginPage from './pages/LoginPage';
-import WatchlistPage from './pages/WatchlistPage';
-import RecommendationWizard from './components/RecommendationWizard';
 import Footer from './components/Footer';
 import { useFCM } from './hooks/useFCM.jsx';
 import NotificationBanner from './components/NotificationBanner';
-import TipsTour from './components/TipsTour';
 import { useTranslation } from 'react-i18next';
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ExplorePage = lazy(() => import('./pages/ExplorePage'));
+const MovieDetailPage = lazy(() => import('./pages/MovieDetailPage'));
+const ActorDetailPage = lazy(() => import('./pages/ActorDetailPage'));
+const FavoritesPage = lazy(() => import('./pages/FavoritesPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const WatchlistPage = lazy(() => import('./pages/WatchlistPage'));
+const WatchlistDetailPage = lazy(() => import('./pages/WatchlistDetailPage'));
+const RecommendationWizard = lazy(() => import('./components/RecommendationWizard'));
+const TipsTour = lazy(() => import('./components/TipsTour'));
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -45,6 +47,10 @@ function ChatNotifier() {
   }, [unreadRooms]);
 
   return null;
+}
+
+function RouteFallback() {
+  return <div className="min-h-[40vh]" />;
 }
 
 export default function App() {
@@ -79,34 +85,44 @@ export default function App() {
       />
 
       <div className="flex-1">
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/movie/:id" element={<MovieDetailPage />} />
-            <Route path="/person/:id" element={<ActorDetailPage />} />
-            <Route path="/profile/:uid" element={<ProfilePage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/favorites"
-              element={
-                <ProtectedRoute>
-                  <FavoritesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/watchlist"
-              element={
-                <ProtectedRoute>
-                  <WatchlistPage />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </AnimatePresence>
+        <Suspense fallback={<RouteFallback />}>
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/movie/:id" element={<MovieDetailPage />} />
+              <Route path="/person/:id" element={<ActorDetailPage />} />
+              <Route path="/profile/:uid" element={<ProfilePage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route
+                path="/favorites"
+                element={
+                  <ProtectedRoute>
+                    <FavoritesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/watchlist"
+                element={
+                  <ProtectedRoute>
+                    <WatchlistPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/watchlist/:id"
+                element={
+                  <ProtectedRoute>
+                    <WatchlistDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </AnimatePresence>
+        </Suspense>
       </div>
 
       <Footer />
@@ -154,22 +170,25 @@ export default function App() {
       {/* Wizard Modal */}
       <AnimatePresence>
         {wizardOpen && (
-          <RecommendationWizard onClose={() => setWizardOpen(false)} />
+          <Suspense fallback={null}>
+            <RecommendationWizard onClose={() => setWizardOpen(false)} />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* Tips Tour */}
       <AnimatePresence>
         {showTour && (
-          <TipsTour
-            onDone={() => {
-              localStorage.setItem('mfp_onboarded', '1');
-              setShowTour(false);
-            }}
-          />
+          <Suspense fallback={null}>
+            <TipsTour
+              onDone={() => {
+                localStorage.setItem('mfp_onboarded', '1');
+                setShowTour(false);
+              }}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
     </div>
   );
 }
-

@@ -46,5 +46,40 @@ function firebaseSwPlugin() {
 export default defineConfig({
   plugins: [react(), firebaseSwPlugin()],
   server: { host: true, port: 3000, open: true },
-});
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
 
+          if (
+            id.includes('/node_modules/firebase/') ||
+            id.includes('/node_modules/@firebase/')
+          ) {
+            return 'firebase';
+          }
+          if (id.includes('/node_modules/framer-motion/')) return 'motion';
+          if (id.includes('/node_modules/react-icons/')) return 'icons';
+          if (id.includes('/node_modules/i18next/') || id.includes('/node_modules/react-i18next/')) {
+            return 'i18n';
+          }
+          if (
+            id.includes('/node_modules/react-router/') ||
+            id.includes('/node_modules/react-router-dom/')
+          ) {
+            return 'router';
+          }
+          if (
+            id.includes('/node_modules/react/') ||
+            id.includes('/node_modules/react-dom/') ||
+            id.includes('/node_modules/scheduler/')
+          ) {
+            return 'react-vendor';
+          }
+
+          return 'vendor';
+        },
+      },
+    },
+  },
+});

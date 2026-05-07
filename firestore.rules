@@ -9,18 +9,113 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isRequiredString(value, maxLength) {
+      return value is string && value.size() > 0 && value.size() <= maxLength;
+    }
+
+    function isOptionalString(value, maxLength) {
+      return value == null || (value is string && value.size() <= maxLength);
+    }
+
+    function isDirectMessageParticipant(dmId) {
+      return isSignedIn() && (
+        (
+          dmId.matches('^' + request.auth.uid + '_[^_]+$') &&
+          !dmId.matches('^' + request.auth.uid + '_' + request.auth.uid + '$')
+        ) ||
+        (
+          dmId.matches('^[^_]+_' + request.auth.uid + '$') &&
+          !dmId.matches('^' + request.auth.uid + '_' + request.auth.uid + '$')
+        )
+      );
+    }
+
+    function isValidChatCreate(data) {
+      return data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt']) &&
+        data.uid == request.auth.uid &&
+        isOptionalString(data.displayName, 120) &&
+        isOptionalString(data.photoURL, 2048) &&
+        isRequiredString(data.text, 2000) &&
+        data.createdAt == request.time;
+    }
+
+    function isValidChatUpdate() {
+      return request.resource.data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt', 'editedAt']) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.displayName == resource.data.displayName &&
+        request.resource.data.photoURL == resource.data.photoURL &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        isRequiredString(request.resource.data.text, 2000) &&
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['text', 'editedAt']);
+    }
+
+    function isValidCommentCreate(data) {
+      return data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt']) &&
+        data.uid == request.auth.uid &&
+        isOptionalString(data.displayName, 120) &&
+        isOptionalString(data.photoURL, 2048) &&
+        isRequiredString(data.text, 2000) &&
+        data.createdAt == request.time;
+    }
+
+    function isValidCommentUpdate() {
+      return request.resource.data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt', 'editedAt']) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.displayName == resource.data.displayName &&
+        request.resource.data.photoURL == resource.data.photoURL &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        isRequiredString(request.resource.data.text, 2000) &&
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['text', 'editedAt']);
+    }
+
+    function isValidDmMetadata() {
+      return request.resource.data.keys().hasOnly(['lastMessage', 'lastAt', 'otherUid']) &&
+        isRequiredString(request.resource.data.lastMessage, 2000) &&
+        isRequiredString(request.resource.data.otherUid, 128) &&
+        request.resource.data.lastAt == request.time;
+    }
+
+    function isValidOwnDmMetadata(userId, dmId) {
+      return isOwner(userId) &&
+        request.resource.data.otherUid != request.auth.uid &&
+        (
+          dmId == request.auth.uid + '_' + request.resource.data.otherUid ||
+          dmId == request.resource.data.otherUid + '_' + request.auth.uid
+        );
+    }
+
+    function isValidPeerDmMetadata(userId, dmId) {
+      return isSignedIn() &&
+        userId != request.auth.uid &&
+        request.resource.data.otherUid == request.auth.uid &&
+        (
+          dmId == request.auth.uid + '_' + userId ||
+          dmId == userId + '_' + request.auth.uid
+        );
+    }
+
+    function isValidDmMessageCreate(data) {
+      return data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'text', 'createdAt']) &&
+        data.uid == request.auth.uid &&
+        isOptionalString(data.displayName, 120) &&
+        isOptionalString(data.photoURL, 2048) &&
+        isRequiredString(data.text, 2000) &&
+        data.createdAt == request.time;
+    }
+
     // Film sohbet odası
     match /movies/{movieId}/chat/{messageId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.uid;
+      allow create: if isSignedIn() && isValidChatCreate(request.resource.data);
+      allow update: if isSignedIn() && request.auth.uid == resource.data.uid && isValidChatUpdate();
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.uid;
     }
 
     // Film yorumları
     match /movies/{movieId}/comments/{commentId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && request.auth.uid == resource.data.uid;
+      allow create: if isSignedIn() && isValidCommentCreate(request.resource.data);
+      allow update: if isSignedIn() && request.auth.uid == resource.data.uid && isValidCommentUpdate();
       allow delete: if isSignedIn() && request.auth.uid == resource.data.uid;
     }
 
@@ -39,6 +134,18 @@ service cloud.firestore {
       match /favorites/{movieId} {
         allow read: if true;
         allow write: if isOwner(userId);
+      }
+
+      match /watchlist/{movieId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /watchlists/{watchlistId} {
+        allow read, write: if isOwner(userId);
+
+        match /movies/{movieId} {
+          allow read, write: if isOwner(userId);
+        }
       }
 
       match /recommendations/{movieId} {
@@ -67,7 +174,14 @@ service cloud.firestore {
 
       // Direkt mesajlar listesi
       match /dms/{dmId} {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create, update: if isDirectMessageParticipant(dmId) &&
+          isValidDmMetadata() &&
+          (
+            isValidOwnDmMetadata(userId, dmId) ||
+            isValidPeerDmMetadata(userId, dmId)
+          );
+        allow delete: if isOwner(userId);
       }
 
       // FCM push token'ları
@@ -78,14 +192,8 @@ service cloud.firestore {
 
     // Direkt mesaj konuşmaları
     match /dms/{dmId}/messages/{messageId} {
-      allow read: if isSignedIn() && (
-        dmId.matches(request.auth.uid + '_.*') ||
-        dmId.matches('.*_' + request.auth.uid)
-      );
-      allow create: if isSignedIn() && (
-        dmId.matches(request.auth.uid + '_.*') ||
-        dmId.matches('.*_' + request.auth.uid)
-      );
+      allow read: if isDirectMessageParticipant(dmId);
+      allow create: if isDirectMessageParticipant(dmId) && isValidDmMessageCreate(request.resource.data);
     }
   }
 }

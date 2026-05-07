@@ -5,7 +5,6 @@ import { FiHeart, FiStar, FiClock, FiCalendar, FiArrowLeft, FiTv, FiShare2, FiEx
 import { useTranslation } from 'react-i18next';
 import { useMovieDetail } from '../hooks/useMovies';
 import { useFavorites } from '../hooks/useFavorites';
-import { useWatchlist } from '../hooks/useWatchlist';
 import { useMovieFans } from '../hooks/useMovieFans';
 import { useAuth } from '../contexts/AuthContext';
 import { backdrop, poster, profile } from '../config/tmdb';
@@ -14,18 +13,19 @@ import WatchProvidersModal from '../components/WatchProvidersModal';
 import MovieComments from '../components/MovieComments';
 import MovieChat from '../components/MovieChat';
 import ShareModal from '../components/ShareModal';
+import WatchlistSelector from '../components/WatchlistSelector';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 export default function MovieDetailPage() {
   const { id } = useParams();
   const { movie, credits, similar, similarHasMore, loadingMoreSimilar, loadMoreSimilar, loading } = useMovieDetail(id);
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { toggleWatchlist, isInWatchlist } = useWatchlist();
   const { fans } = useMovieFans(id);
   const { user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [watchOpen, setWatchOpen] = useState(false);
+  const [watchlistSelectorOpen, setWatchlistSelectorOpen] = useState(false);
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [playOpen, setPlayOpen] = useState(false);
@@ -45,7 +45,6 @@ export default function MovieDetailPage() {
   }
 
   const fav = isFavorite(movie.id);
-  const inWatchlist = isInWatchlist(movie.id);
   const director = credits?.crew?.find((c) => c.job === 'Director');
   const cast = credits?.cast?.slice(0, 6) || [];
   const trailer = movie.videos?.results?.find((v) => v.type === 'Trailer' && v.site === 'YouTube');
@@ -136,16 +135,12 @@ export default function MovieDetailPage() {
                 whileTap={{ scale: 0.9 }}
                 onClick={() => {
                   if (!user) { navigate('/login'); return; }
-                  toggleWatchlist(movie);
+                  setWatchlistSelectorOpen(true);
                 }}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-colors ${
-                  inWatchlist
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                    : 'glass hover:bg-white/10'
-                }`}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-colors glass hover:bg-white/10"
               >
-                <FiBookmark className={inWatchlist ? 'fill-blue-400' : ''} />
-                {inWatchlist ? t('movie.removeWatchlist') : t('movie.addWatchlist')}
+                <FiBookmark />
+                {t('movie.addWatchlist')}
               </motion.button>
 
               {trailer && (
@@ -300,6 +295,12 @@ export default function MovieDetailPage() {
         {shareOpen && <ShareModal movie={movie} onClose={() => setShareOpen(false)} />}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {watchlistSelectorOpen && (
+          <WatchlistSelector movie={movie} onClose={() => setWatchlistSelectorOpen(false)} />
+        )}
+      </AnimatePresence>
+
       <MovieChat movieId={movie.id} movieTitle={movie.title} />
 
       <AnimatePresence>
@@ -335,15 +336,14 @@ export default function MovieDetailPage() {
                     transition={{ delay: 0.5 }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={(e) => { e.stopPropagation(); toggleWatchlist(movie); }}
-                    className={`absolute bottom-3 right-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors shadow-lg ${
-                      inWatchlist
-                        ? 'bg-blue-500/90 text-white'
-                        : 'bg-black/70 text-gray-200 hover:bg-black/90 backdrop-blur-sm'
-                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setWatchlistSelectorOpen(true);
+                    }}
+                    className="absolute bottom-3 right-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors shadow-lg bg-black/70 text-gray-200 hover:bg-black/90 backdrop-blur-sm"
                   >
-                    <FiBookmark size={13} className={inWatchlist ? 'fill-white' : ''} />
-                    {inWatchlist ? t('movie.removeWatchlist') : t('movie.addWatchlist')}
+                    <FiBookmark size={13} />
+                    {t('movie.addWatchlist')}
                   </motion.button>
                 )}
               </div>
