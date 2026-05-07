@@ -72,6 +72,7 @@ export default function App() {
       <ChatNotifier />
       <Toaster
         position="top-right"
+        containerStyle={{ top: 72 }}
         toastOptions={{
           style: { background: '#1E293B', color: '#fff', border: '1px solid #334155' },
         }}

@@ -74,6 +74,18 @@ service cloud.firestore {
       match /fcmTokens/{token} {
         allow read, write: if isOwner(userId);
       }
+
+      // Bildirimler — sadece sahibi okur; giriş yapmış herhangi biri yazabilir (bildirim gönderebilmek için)
+      match /notifications/{notifId} {
+        allow read, update, delete: if isOwner(userId);
+        allow create: if isSignedIn();
+      }
+
+      // Kullanıcının yorumları
+      match /comments/{commentId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
     }
 
     // Direkt mesaj konuşmaları

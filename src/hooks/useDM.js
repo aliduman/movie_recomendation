@@ -6,6 +6,7 @@ import {
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { notifyDM } from '../utils/notify';
+import { sendNotification } from '../utils/writeNotification';
 
 export function dmId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -35,8 +36,8 @@ export function useDM(otherUid) {
     if (!user || !rid || !text.trim()) return;
     await addDoc(collection(db, 'dms', rid, 'messages'), {
       uid: user.uid,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
+      displayName: user.displayName || user.email?.split('@')[0] || 'Kullanıcı',
+      photoURL: user.photoURL || '',
       text: text.trim(),
       createdAt: serverTimestamp(),
     });
@@ -45,6 +46,13 @@ export function useDM(otherUid) {
     await setDoc(doc(db, 'users', user.uid, 'dms', rid), { ...meta, otherUid }, { merge: true });
     await setDoc(doc(db, 'users', otherUid, 'dms', rid), { ...meta, otherUid: user.uid }, { merge: true });
     notifyDM(otherUid, text.trim());
+    sendNotification(otherUid, `dm_${user.uid}`, {
+      type: 'dm',
+      fromUid: user.uid,
+      fromName: user.displayName || user.email?.split('@')[0] || 'Kullanıcı',
+      fromPhoto: user.photoURL || '',
+      preview: text.trim().substring(0, 80),
+    });
   };
 
   return { messages, loading, sendMessage, rid };

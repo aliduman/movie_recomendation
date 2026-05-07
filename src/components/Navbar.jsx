@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHome, FiCompass, FiHeart, FiLogIn, FiLogOut, FiSearch, FiUser } from 'react-icons/fi';
+import { FiHome, FiCompass, FiHeart, FiLogIn, FiLogOut, FiSearch, FiUser, FiBell } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../hooks/useNotifications';
 import SearchOverlay from './SearchOverlay';
+import NotificationSidebar from './NotificationSidebar';
 import MyFlickPickLogo from './MyFlickPickLogo';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -13,6 +15,8 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const { unreadCount } = useNotifications();
 
   const links = [
     { to: '/', label: t('nav.home'), icon: FiHome },
@@ -75,8 +79,29 @@ export default function Navbar() {
             {/* Language switcher — desktop only */}
             <LanguageSwitcher className="hidden sm:flex ml-1" />
 
+            {/* Notification bell — logged-in only */}
+            {user && (
+              <button
+                onClick={() => setNotifOpen(true)}
+                className="relative p-2 text-gray-400 hover:text-white transition-colors ml-1"
+                aria-label="Notifications"
+              >
+                <FiBell size={18} />
+                {unreadCount > 0 && (
+                  <motion.span
+                    key={unreadCount}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute top-0.5 right-0.5 min-w-[17px] h-[17px] rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1 leading-none"
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </motion.span>
+                )}
+              </button>
+            )}
+
             {user ? (
-              <div className="flex items-center gap-2 ml-3">
+              <div className="flex items-center gap-2 ml-2">
                 <Link to={`/profile/${user.uid}`} title="Profilim">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border-2 border-primary/50 hover:border-primary transition-colors object-cover" />
@@ -121,6 +146,8 @@ export default function Navbar() {
       <AnimatePresence>
         {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
       </AnimatePresence>
+
+      <NotificationSidebar open={notifOpen} onClose={() => setNotifOpen(false)} />
     </>
   );
 }

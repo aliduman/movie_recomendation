@@ -3,6 +3,7 @@ import { doc, setDoc, deleteDoc, onSnapshot, collection } from 'firebase/firesto
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { notifyFollow } from '../utils/notify';
+import { sendNotification } from '../utils/writeNotification';
 
 export function useFollow(targetUid) {
   const { user } = useAuth();
@@ -49,10 +50,20 @@ export function useFollow(targetUid) {
       await deleteDoc(followerRef);
       await deleteDoc(followingRef);
     } else {
-      const data = { uid: user.uid, displayName: user.displayName, photoURL: user.photoURL };
+      const data = {
+        uid: user.uid,
+        displayName: user.displayName || user.email?.split('@')[0] || 'Kullanıcı',
+        photoURL: user.photoURL || '',
+      };
       await setDoc(followerRef, data);
       await setDoc(followingRef, { uid: targetUid });
       notifyFollow(targetUid);
+      sendNotification(targetUid, `follow_${user.uid}`, {
+        type: 'follow',
+        fromUid: user.uid,
+        fromName: user.displayName || user.email?.split('@')[0] || 'Kullanıcı',
+        fromPhoto: user.photoURL || '',
+      });
     }
   };
 

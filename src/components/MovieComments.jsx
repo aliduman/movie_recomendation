@@ -187,10 +187,10 @@ function AllCommentsModal({ comments, user, onDelete, onUpdate, onClose }) {
   );
 }
 
-export default function MovieComments({ movieId }) {
+export default function MovieComments({ movieId, movieTitle = '' }) {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { comments, loading, addComment, deleteComment, updateComment } = useComments(movieId);
+  const { comments, loading, addComment, deleteComment, updateComment } = useComments(movieId, movieTitle);
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');

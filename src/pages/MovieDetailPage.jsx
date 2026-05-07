@@ -224,7 +224,7 @@ export default function MovieDetailPage() {
           </section>
         )}
 
-        <MovieComments movieId={movie.id} />
+        <MovieComments movieId={movie.id} movieTitle={movie.title} />
 
         {/* Benzer Filmler */}
         {similar.length > 0 && (

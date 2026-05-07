@@ -130,6 +130,15 @@
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet",
+    "follow": "{{name}} started following you",
+    "dm": "{{name}} sent you a message",
+    "comment": "{{name}} commented on {{movie}}",
+    "chat": "{{name}} sent a message in {{movie}} chat"
+  },
   "genres": {
     "action": "Action",
     "comedy": "Comedy",

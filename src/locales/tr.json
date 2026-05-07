@@ -130,6 +130,15 @@
     "hoursAgo": "{{count}} sa önce",
     "daysAgo": "{{count}} gün önce"
   },
+  "notifications": {
+    "title": "Bildirimler",
+    "markAllRead": "Tümünü okundu işaretle",
+    "empty": "Henüz bildirim yok",
+    "follow": "{{name}} sizi takip etmeye başladı",
+    "dm": "{{name}} size mesaj gönderdi",
+    "comment": "{{name}}, {{movie}} filmine yorum yaptı",
+    "chat": "{{name}}, {{movie}} sohbetine mesaj gönderdi"
+  },
   "genres": {
     "action": "Aksiyon",
     "comedy": "Komedi",

@@ -54,11 +54,9 @@ export default function ProfilePage() {
     if (!editName.trim()) return;
     setSaving(true);
     try {
-      await saveProfile(uid, {
-        displayName: editName.trim(),
-        bio: editBio.trim(),
-        photoURL: user?.photoURL || '',
-      });
+      const profileData = { displayName: editName.trim(), bio: editBio.trim() };
+      if (user?.photoURL) profileData.photoURL = user.photoURL;
+      await saveProfile(uid, profileData);
       toast.success(t('profile.updated'));
       setEditing(false);
     } catch {

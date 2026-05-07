@@ -62,8 +62,8 @@ export function useChat(movieId, movieTitle) {
     if (!user || !text.trim()) return;
     await addDoc(collection(db, 'movies', String(movieId), 'chat'), {
       uid: user.uid,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
+      displayName: user.displayName || user.email?.split('@')[0] || 'Kullanıcı',
+      photoURL: user.photoURL || '',
       text: text.trim(),
       createdAt: serverTimestamp(),
     });

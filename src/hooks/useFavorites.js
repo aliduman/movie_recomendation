@@ -117,8 +117,8 @@ export function useFavorites() {
         await setDoc(ref, { ...payload, updatedAt: serverTimestamp() });
         await setDoc(fanRef, {
           uid: user.uid,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
+          displayName: user.displayName || user.email?.split('@')[0] || 'Kullanıcı',
+          photoURL: user.photoURL || '',
           likedAt: serverTimestamp(),
         });
       }
