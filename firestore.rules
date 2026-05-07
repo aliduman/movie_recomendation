@@ -143,8 +143,8 @@ service cloud.firestore {
       match /watchlists/{watchlistId} {
         allow read, write: if isOwner(userId);
 
-        // Watchlist olusturma/ekleme akisinda owner'in tum alt dokumanlara yazabilmesi gerekir.
-        // Bu alan sadece users/{uid} altinda ve sadece owner'a acik oldugu icin kapsam guvenlidir.
+        // Watchlist oluşturma/ekleme akışında owner'ın tüm alt dokümanlara yazabilmesi gerekir.
+        // Bu alan sadece users/{uid} altında ve sadece owner'a açık olduğu için kapsam güvenlidir.
         match /{document=**} {
           allow read, write: if isOwner(userId);
         }
