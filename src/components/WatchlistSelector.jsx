@@ -15,9 +15,9 @@ export default function WatchlistSelector({ movie, onClose }) {
   const [newListName, setNewListName] = useState('');
   const [submittingId, setSubmittingId] = useState(null);
   const [creating, setCreating] = useState(false);
-  const [isMobile, setIsMobile] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth < 640,
-  );
+  const [isMobile, setIsMobile] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
+  ));
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
