@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -11,6 +12,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   writeBatch,
 } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
@@ -235,12 +237,98 @@ export function useWatchlists() {
     [user, watchlists],
   );
 
+  const renameWatchlist = useCallback(
+    async (watchlistId, name) => {
+      if (!user) return;
+
+      const trimmed = name.trim();
+      if (!trimmed) {
+        throw new Error('WATCHLIST_NAME_REQUIRED');
+      }
+
+      const normalized = trimmed.toLocaleLowerCase('tr-TR');
+      const duplicate = watchlists.find(
+        (item) =>
+          item.id !== watchlistId &&
+          item.name.trim().toLocaleLowerCase('tr-TR') === normalized,
+      );
+      if (duplicate) {
+        throw new Error('WATCHLIST_NAME_EXISTS');
+      }
+
+      const watchlistRef = doc(db, 'users', user.uid, 'watchlists', watchlistId);
+      await updateDoc(watchlistRef, {
+        name: trimmed,
+        updatedAt: serverTimestamp(),
+      });
+    },
+    [user, watchlists],
+  );
+
+  const deleteWatchlist = useCallback(
+    async (watchlistId) => {
+      if (!user) return;
+
+      const watchlistRef = doc(db, 'users', user.uid, 'watchlists', watchlistId);
+      const moviesRef = collection(watchlistRef, 'movies');
+      const moviesSnap = await getDocs(moviesRef);
+
+      const docs = moviesSnap.docs;
+      // Firestore batch limit is 500 ops; chunk to be safe.
+      const CHUNK = 400;
+      for (let i = 0; i < docs.length; i += CHUNK) {
+        const batch = writeBatch(db);
+        docs.slice(i, i + CHUNK).forEach((movieDoc) => batch.delete(movieDoc.ref));
+        await batch.commit();
+      }
+
+      await deleteDoc(watchlistRef);
+    },
+    [user],
+  );
+
+  const removeMovieFromWatchlist = useCallback(
+    async (watchlistId, movieDocId) => {
+      if (!user) return;
+
+      const watchlistRef = doc(db, 'users', user.uid, 'watchlists', watchlistId);
+      const movieRef = doc(watchlistRef, 'movies', movieDocId);
+
+      const [movieSnap, watchlistSnap] = await Promise.all([
+        getDoc(movieRef),
+        getDoc(watchlistRef),
+      ]);
+
+      if (!movieSnap.exists()) return;
+
+      const currentCount = watchlistSnap.exists() ? watchlistSnap.data().movieCount || 0 : 0;
+      const willBeEmpty = currentCount <= 1;
+
+      const batch = writeBatch(db);
+      batch.delete(movieRef);
+      batch.set(
+        watchlistRef,
+        {
+          movieCount: increment(-1),
+          updatedAt: serverTimestamp(),
+          ...(willBeEmpty ? { coverPosterPath: null, lastMovieTitle: null } : {}),
+        },
+        { merge: true },
+      );
+      await batch.commit();
+    },
+    [user],
+  );
+
   return {
     watchlists,
     loading,
     createWatchlist,
     addMovieToWatchlist,
     getMovieWatchlistIds,
+    renameWatchlist,
+    deleteWatchlist,
+    removeMovieFromWatchlist,
   };
 }
 
