@@ -164,18 +164,24 @@ export function useWatchlists() {
     async (watchlistId, movie) => {
       if (!user) return { added: false };
 
-      const watchlist = watchlists.find((item) => item.id === watchlistId);
-      if (!watchlist) {
-        throw new Error('WATCHLIST_NOT_FOUND');
+      const watchlistRef = doc(db, 'users', user.uid, 'watchlists', watchlistId);
+      const cached = watchlists.find((item) => item.id === watchlistId);
+      let watchlistName = cached?.name;
+
+      if (!watchlistName) {
+        const watchlistSnap = await getDoc(watchlistRef);
+        if (!watchlistSnap.exists()) {
+          throw new Error('WATCHLIST_NOT_FOUND');
+        }
+        watchlistName = watchlistSnap.data()?.name || '';
       }
 
       const payload = normalizeMovie(movie);
-      const watchlistRef = doc(db, 'users', user.uid, 'watchlists', watchlistId);
       const movieRef = doc(watchlistRef, 'movies', mediaDocId(payload.id, payload.media_type));
       const movieSnapshot = await getDoc(movieRef);
 
       if (movieSnapshot.exists()) {
-        return { added: false, watchlistName: watchlist.name };
+        return { added: false, watchlistName };
       }
 
       const batch = writeBatch(db);
@@ -195,7 +201,7 @@ export function useWatchlists() {
       );
       await batch.commit();
 
-      return { added: true, watchlistName: watchlist.name };
+      return { added: true, watchlistName };
     },
     [user, watchlists],
   );

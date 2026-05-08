@@ -32,29 +32,37 @@ export default function WatchlistSelector({ movie, onClose }) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
+  const movieId = movie?.id;
+  const movieMediaType = movie?.media_type;
+  const watchlistIdsKey = useMemo(
+    () => watchlists.map((item) => item.id).join(','),
+    [watchlists],
+  );
+
   useEffect(() => {
+    if (loading) return undefined;
+    if (!watchlists.length) {
+      setSelectedIds([]);
+      setCheckingMembership(false);
+      return undefined;
+    }
+
     let active = true;
+    setCheckingMembership(true);
 
-    const loadMembership = async () => {
-      setCheckingMembership(true);
-      try {
-        const ids = await getMovieWatchlistIds(movie);
-        if (active) {
-          setSelectedIds(ids);
-        }
-      } finally {
-        if (active) {
-          setCheckingMembership(false);
-        }
-      }
-    };
-
-    loadMembership();
+    getMovieWatchlistIds(movie)
+      .then((ids) => {
+        if (active) setSelectedIds(ids);
+      })
+      .finally(() => {
+        if (active) setCheckingMembership(false);
+      });
 
     return () => {
       active = false;
     };
-  }, [getMovieWatchlistIds, movie]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, watchlistIdsKey, movieId, movieMediaType]);
 
   const submitList = async (watchlistId) => {
     setSubmittingId(watchlistId);
