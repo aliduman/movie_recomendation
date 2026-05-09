@@ -25,7 +25,6 @@ export default function Navbar() {
   const links = [
     { to: '/', label: t('nav.home'), icon: FiHome },
     { to: '/explore', label: t('nav.explore'), icon: FiCompass },
-    { to: '/favorites', label: t('nav.favorites'), icon: FiHeart },
   ];
 
   useEffect(() => {
@@ -194,6 +193,14 @@ export default function Navbar() {
                           {t('nav.profile')}
                         </Link>
                         <Link
+                          to="/favorites"
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <FiHeart size={15} />
+                          {t('nav.favorites')}
+                        </Link>
+                        <Link
                           to="/watchlist"
                           className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
                           onClick={() => setDropdownOpen(false)}
@@ -282,6 +289,14 @@ export default function Navbar() {
                 >
                   <FiUser size={18} />
                   <span className="font-medium">{t('nav.profile')}</span>
+                </Link>
+                <Link
+                  to="/favorites"
+                  className="flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FiHeart size={18} />
+                  <span className="font-medium">{t('nav.favorites')}</span>
                 </Link>
                 <Link
                   to="/watchlist"
