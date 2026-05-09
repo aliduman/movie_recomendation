@@ -144,7 +144,32 @@
     "removeMovie": "Filmi listeden çıkar",
     "movieRemoved": "Film listeden çıkarıldı.",
     "removeFailed": "Film çıkarılamadı.",
-    "listActions": "Liste işlemleri"
+    "listActions": "Liste işlemleri",
+    "reminders": "Hatırlatıcılar",
+    "reminderAdd": "Hatırlatıcı Ekle",
+    "reminderTitle": "Yeni Hatırlatıcı",
+    "reminderSubtitle": "Belirlediğin zamanda bildirim alacaksın.",
+    "reminderDateLabel": "Tarih ve saat",
+    "reminderMessageLabel": "Not (opsiyonel)",
+    "reminderMessagePlaceholder": "Örn. Cumartesi akşamı film gecesi 🎬",
+    "reminderSubmit": "Hatırlatıcı Kur",
+    "reminderCancel": "Vazgeç",
+    "reminderCreated": "Hatırlatıcı kuruldu.",
+    "reminderCreateFailed": "Hatırlatıcı kurulamadı.",
+    "reminderInvalidDate": "Geçerli bir tarih seç.",
+    "reminderPast": "Tarih gelecekte olmalı.",
+    "reminderEmpty": "Henüz hatırlatıcı yok.",
+    "reminderEmptyHint": "Bu listeye bir hatırlatıcı kurarak film gecesini kaçırma.",
+    "reminderDelete": "Sil",
+    "reminderDeleted": "Hatırlatıcı silindi.",
+    "reminderDeleteFailed": "Hatırlatıcı silinemedi.",
+    "reminderFiredBadge": "Gönderildi",
+    "reminderUpcoming": "Yaklaşan"
+  },
+  "reminderNotification": {
+    "title": "Hatırlatıcı 🍿",
+    "body": "{{name}} listeni izlemeyi unutma!",
+    "bodyWithMessage": "{{name}}: {{message}}"
   },
   "tour": {
     "hero_title": "🎬 Trend Filmler",
@@ -200,7 +225,9 @@
     "follow": "{{name}} sizi takip etmeye başladı",
     "dm": "{{name}} size mesaj gönderdi",
     "comment": "{{name}}, {{movie}} filmine yorum yaptı",
-    "chat": "{{name}}, {{movie}} sohbetine mesaj gönderdi"
+    "chat": "{{name}}, {{movie}} sohbetine mesaj gönderdi",
+    "reminder": "{{name}} listeni izlemeyi unutma!",
+    "reminderWithMessage": "{{name}}: {{message}}"
   },
   "genres": {
     "action": "Aksiyon",

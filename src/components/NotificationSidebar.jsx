@@ -6,11 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../hooks/useNotifications';
 
 const TYPE_CONFIG = {
-  follow:  { icon: FiUserPlus,      color: 'text-purple-400', bg: 'bg-purple-400/15' },
-  dm:      { icon: FiMessageSquare, color: 'text-blue-400',   bg: 'bg-blue-400/15'   },
-  comment: { icon: FiMessageCircle, color: 'text-yellow-400', bg: 'bg-yellow-400/15' },
-  chat:    { icon: FiMessageCircle, color: 'text-green-400',  bg: 'bg-green-400/15'  },
-  like:    { icon: FiHeart,         color: 'text-red-400',    bg: 'bg-red-400/15'    },
+  follow:   { icon: FiUserPlus,      color: 'text-purple-400', bg: 'bg-purple-400/15' },
+  dm:       { icon: FiMessageSquare, color: 'text-blue-400',   bg: 'bg-blue-400/15'   },
+  comment:  { icon: FiMessageCircle, color: 'text-yellow-400', bg: 'bg-yellow-400/15' },
+  chat:     { icon: FiMessageCircle, color: 'text-green-400',  bg: 'bg-green-400/15'  },
+  like:     { icon: FiHeart,         color: 'text-red-400',    bg: 'bg-red-400/15'    },
+  reminder: { icon: FiBell,          color: 'text-primary',    bg: 'bg-primary/15'    },
 };
 
 function timeAgo(ts, t) {
@@ -24,11 +25,12 @@ function timeAgo(ts, t) {
 
 function notifLink(n) {
   switch (n.type) {
-    case 'follow': return `/profile/${n.fromUid}`;
-    case 'dm':     return `/profile/${n.fromUid}`;
+    case 'follow':   return `/profile/${n.fromUid}`;
+    case 'dm':       return `/profile/${n.fromUid}`;
     case 'comment':
-    case 'chat':   return n.movieId ? `/movie/${n.movieId}` : '/';
-    default:       return '/';
+    case 'chat':     return n.movieId ? `/movie/${n.movieId}` : '/';
+    case 'reminder': return n.url || (n.watchlistId ? `/watchlist/${n.watchlistId}` : '/');
+    default:         return n.url || '/';
   }
 }
 
@@ -38,11 +40,15 @@ function NotifItem({ n, onClick, t }) {
 
   let text = '';
   switch (n.type) {
-    case 'follow':  text = t('notifications.follow', { name: n.fromName }); break;
-    case 'dm':      text = t('notifications.dm',     { name: n.fromName }); break;
-    case 'comment': text = t('notifications.comment', { name: n.fromName, movie: n.movieTitle || '' }); break;
-    case 'chat':    text = t('notifications.chat',    { name: n.fromName, movie: n.movieTitle || '' }); break;
-    default:        text = n.body || '';
+    case 'follow':   text = t('notifications.follow',  { name: n.fromName }); break;
+    case 'dm':       text = t('notifications.dm',      { name: n.fromName }); break;
+    case 'comment':  text = t('notifications.comment', { name: n.fromName, movie: n.movieTitle || '' }); break;
+    case 'chat':     text = t('notifications.chat',    { name: n.fromName, movie: n.movieTitle || '' }); break;
+    case 'reminder': text = n.message
+      ? t('notifications.reminderWithMessage', { name: n.watchlistName || '', message: n.message })
+      : t('notifications.reminder', { name: n.watchlistName || '' });
+      break;
+    default:         text = n.body || '';
   }
 
   return (

@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { initializeApp, cert } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const { getAuth } = require('firebase-admin/auth');
 const nodemailer = require('nodemailer');
@@ -122,6 +122,79 @@ app.post('/notify/chat', verifyToken, async (req, res) => {
   );
   res.json({ ok: true });
 });
+
+// ── Reminder scheduler ──
+// Vadesi gelmiş hatırlatıcıları bulup FCM push gönderir, Firestore'a in-app
+// notification yazar ve reminder'ı `fired: true` olarak işaretler.
+//
+// Composite index (Firebase otomatik link verir):
+//   Collection group: reminders, fields: fired ASC, dueAt ASC
+async function processDueReminders() {
+  try {
+    const now = Timestamp.now();
+    const snap = await db
+      .collectionGroup('reminders')
+      .where('fired', '==', false)
+      .where('dueAt', '<=', now)
+      .limit(50)
+      .get();
+
+    if (snap.empty) return;
+
+    for (const reminderDoc of snap.docs) {
+      const data = reminderDoc.data();
+      const userRef = reminderDoc.ref.parent.parent; // /users/{uid}
+      if (!userRef) continue;
+      const uid = userRef.id;
+
+      const watchlistName = data.watchlistName || 'liste';
+      const message = (data.message || '').toString().trim();
+      const title = 'Hatırlatıcı 🍿';
+      const body = message
+        ? `${watchlistName}: ${message.slice(0, 120)}`
+        : `${watchlistName} listeni izlemeyi unutma!`;
+      const url = `/watchlist/${data.watchlistId}`;
+
+      try {
+        await sendPush(uid, { title, body }, { url });
+      } catch (err) {
+        console.error('reminder push failed', uid, err.message);
+      }
+
+      try {
+        await db
+          .doc(`users/${uid}/notifications/reminder_${reminderDoc.id}`)
+          .set({
+            type: 'reminder',
+            watchlistId: data.watchlistId,
+            watchlistName,
+            message: message || null,
+            url,
+            read: false,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+      } catch (err) {
+        console.error('reminder notification write failed', uid, err.message);
+      }
+
+      try {
+        await reminderDoc.ref.update({
+          fired: true,
+          firedAt: FieldValue.serverTimestamp(),
+        });
+      } catch (err) {
+        console.error('reminder mark fired failed', reminderDoc.ref.path, err.message);
+      }
+    }
+  } catch (err) {
+    console.error('reminder scheduler error', err.message);
+  }
+}
+
+const REMINDER_INTERVAL_MS = Number(process.env.REMINDER_INTERVAL_MS) || 60 * 1000;
+setInterval(processDueReminders, REMINDER_INTERVAL_MS);
+// Boot anında bir kere çalıştır.
+processDueReminders();
 
 // Health check
 app.get('/', (_, res) => res.json({ status: 'ok' }));

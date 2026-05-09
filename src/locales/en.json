@@ -144,7 +144,32 @@
     "removeMovie": "Remove from list",
     "movieRemoved": "Movie removed from the list.",
     "removeFailed": "Could not remove the movie.",
-    "listActions": "List actions"
+    "listActions": "List actions",
+    "reminders": "Reminders",
+    "reminderAdd": "Add Reminder",
+    "reminderTitle": "New Reminder",
+    "reminderSubtitle": "You'll be notified at the time you choose.",
+    "reminderDateLabel": "Date and time",
+    "reminderMessageLabel": "Note (optional)",
+    "reminderMessagePlaceholder": "e.g. Saturday movie night 🎬",
+    "reminderSubmit": "Set Reminder",
+    "reminderCancel": "Cancel",
+    "reminderCreated": "Reminder set.",
+    "reminderCreateFailed": "Could not set the reminder.",
+    "reminderInvalidDate": "Choose a valid date.",
+    "reminderPast": "Date must be in the future.",
+    "reminderEmpty": "No reminders yet.",
+    "reminderEmptyHint": "Set a reminder so you don't miss your movie night.",
+    "reminderDelete": "Delete",
+    "reminderDeleted": "Reminder deleted.",
+    "reminderDeleteFailed": "Could not delete the reminder.",
+    "reminderFiredBadge": "Sent",
+    "reminderUpcoming": "Upcoming"
+  },
+  "reminderNotification": {
+    "title": "Reminder 🍿",
+    "body": "Don't forget to watch your {{name}} list!",
+    "bodyWithMessage": "{{name}}: {{message}}"
   },
   "tour": {
     "hero_title": "🎬 Trending Movies",
@@ -200,7 +225,9 @@
     "follow": "{{name}} started following you",
     "dm": "{{name}} sent you a message",
     "comment": "{{name}} commented on {{movie}}",
-    "chat": "{{name}} sent a message in {{movie}} chat"
+    "chat": "{{name}} sent a message in {{movie}} chat",
+    "reminder": "Don't forget to watch your {{name}} list!",
+    "reminderWithMessage": "{{name}}: {{message}}"
   },
   "genres": {
     "action": "Action",

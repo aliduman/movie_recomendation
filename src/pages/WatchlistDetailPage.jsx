@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   FiArrowLeft,
+  FiBell,
   FiCheck,
   FiEdit2,
   FiTrash2,
@@ -11,8 +12,10 @@ import {
 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import MovieCard from '../components/MovieCard';
+import RemindersModal from '../components/RemindersModal';
 import { poster } from '../config/tmdb';
 import { useWatchlistDetail, useWatchlists } from '../hooks/useWatchlist';
+import { useReminders } from '../hooks/useReminders';
 
 export default function WatchlistDetailPage() {
   const { id } = useParams();
@@ -27,6 +30,9 @@ export default function WatchlistDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [removingDocId, setRemovingDocId] = useState(null);
+  const [remindersOpen, setRemindersOpen] = useState(false);
+  const { reminders } = useReminders(id);
+  const upcomingCount = reminders.filter((r) => !r.fired).length;
 
   const startEdit = () => {
     setEditName(watchlist?.name || '');
@@ -201,6 +207,19 @@ export default function WatchlistDetailPage() {
                 <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
                   <button
                     type="button"
+                    onClick={() => setRemindersOpen(true)}
+                    className="relative inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-sm transition-colors"
+                  >
+                    <FiBell size={14} />
+                    <span className="hidden sm:inline">{t('watchlist.reminders')}</span>
+                    {upcomingCount > 0 && (
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full bg-primary text-xs font-bold text-white">
+                        {upcomingCount}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
                     onClick={startEdit}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-sm transition-colors"
                   >
@@ -255,6 +274,14 @@ export default function WatchlistDetailPage() {
             })}
           </div>
         </section>
+      )}
+
+      {remindersOpen && (
+        <RemindersModal
+          watchlistId={id}
+          watchlistName={watchlist.name}
+          onClose={() => setRemindersOpen(false)}
+        />
       )}
 
       <AnimatePresence>

@@ -227,6 +227,11 @@ service cloud.firestore {
         allow create: if isSignedIn();
       }
 
+      // İzleme listesi hatırlatıcıları — yalnızca sahibi okur ve yazar
+      match /reminders/{reminderId} {
+        allow read, write: if isOwner(userId);
+      }
+
       // Kullanıcının yorumları
       match /comments/{commentId} {
         allow read: if true;
