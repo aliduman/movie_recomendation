@@ -49,7 +49,9 @@ npm install          # Install dependencies
 npm run dev          # Vite dev server on http://localhost:3000
 npm run build        # Production build to dist/
 npm run preview      # Preview production build
+npx wrangler deploy  # Cloudflare Workers static assets (see wrangler.jsonc)
 ```
+- **Cloudflare:** `wrangler.jsonc` publishes `dist/` as a static SPA (`not_found_handling: single-page-application`). `functions/` is the Firebase/Express backend, not a Worker entry.
 
 ## Key Patterns & Conventions
 - **Animation:** Framer Motion `layoutId` for shared-element transitions (genre pills, nav indicator). `AnimatePresence mode="wait"` for page transitions.
