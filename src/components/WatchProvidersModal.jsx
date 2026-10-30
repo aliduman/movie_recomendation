@@ -21,22 +21,6 @@ const REGIONS = [
 ];
 
 
-function HDFilmButton({ title }) {
-  const url = `https://www.google.com/search?q=${encodeURIComponent(`site:fullhdfilmizlesene.live ${title}`)}`;
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer"
-      className="flex items-center justify-center gap-2.5 w-full px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors font-medium text-sm"
-    >
-      <span className="text-base leading-none">🎬</span>
-      FullHD Film İzlesene'de Ara
-    </a>
-  );
-}
-
-// Her provider satırı: logo → API'den gelen film-spesifik link | Google butonu
 function GoogleSearchButton({ title }) {
   const url = `https://www.google.com/search?q=${encodeURIComponent(`${title} nereden izlenir`)}`;
   return (
@@ -114,7 +98,6 @@ export default function WatchProvidersModal({ movie, onClose }) {
   const [providers, setProviders] = useState(null);
   const [loading, setLoading] = useState(true);
   const [region, setRegion] = useState('TR');
-  const [enTitle, setEnTitle] = useState('');
   const mediaType = getMediaType(movie);
   const base = mediaType === 'tv' ? 'tv' : 'movie';
   const movieTitle = getTitle(movie);
@@ -122,14 +105,10 @@ export default function WatchProvidersModal({ movie, onClose }) {
   useEffect(() => {
     if (!movie?.id) return;
     setLoading(true);
-    setEnTitle('');
     tmdb
       .get(`/${base}/${movie.id}/watch/providers`)
       .then(({ data }) => setProviders(data?.results || {}))
       .finally(() => setLoading(false));
-    tmdb
-      .get(`/${base}/${movie.id}`, { params: { language: 'en-US' } })
-      .then(({ data }) => setEnTitle(data.title || data.name || ''));
   }, [movie?.id, base]);
 
   useEffect(() => {
@@ -232,9 +211,6 @@ export default function WatchProvidersModal({ movie, onClose }) {
                     : 'Seçilen bölgede platform bilgisi yok.'}
                 </p>
                 <GoogleSearchButton title={movieTitle} />
-                <div className="mt-2">
-                  <HDFilmButton title={enTitle || movieTitle} />
-                </div>
               </div>
             )}
 
@@ -255,7 +231,6 @@ export default function WatchProvidersModal({ movie, onClose }) {
                   <GoogleIcon />
                   Google'da tüm izleme seçeneklerini ara
                 </a>
-                <HDFilmButton title={enTitle || movieTitle} />
               </>
             )}
           </div>

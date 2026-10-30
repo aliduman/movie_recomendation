@@ -31,7 +31,6 @@ export default function MovieDetailPage() {
   const [watchlistSelectorOpen, setWatchlistSelectorOpen] = useState(false);
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [playOpen, setPlayOpen] = useState(false);
   const [infiniteScrollActive, setInfiniteScrollActive] = useState(false);
 
   const sentinelRef = useInfiniteScroll({
@@ -191,28 +190,17 @@ export default function MovieDetailPage() {
               </motion.button>
 
               {movie.imdb_id && (
-                <>
-                  <motion.a
-                    whileTap={{ scale: 0.9 }}
-                    href={`https://www.imdb.com/title/${movie.imdb_id}/`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold transition-colors"
-                    style={{ background: '#F5C518', color: '#000' }}
-                  >
-                    <span className="font-black text-sm leading-none">IMDb</span>
-                    <FiExternalLink size={15} />
-                  </motion.a>
-
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setPlayOpen(true)}
-                    className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-white transition-colors"
-                    style={{ background: 'linear-gradient(135deg,#16a34a,#15803d)' }}
-                  >
-                    ▶ {t('movie.watch')}
-                  </motion.button>
-                </>
+                <motion.a
+                  whileTap={{ scale: 0.9 }}
+                  href={`https://www.imdb.com/title/${movie.imdb_id}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold transition-colors"
+                  style={{ background: '#F5C518', color: '#000' }}
+                >
+                  <span className="font-black text-sm leading-none">IMDb</span>
+                  <FiExternalLink size={15} />
+                </motion.a>
               )}
 
               <motion.button
@@ -386,43 +374,6 @@ export default function MovieDetailPage() {
         )}
       </AnimatePresence>
 
-      {/* PlayIMDB Modal */}
-      <AnimatePresence>
-        {playOpen && movie.imdb_id && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setPlayOpen(false)}
-          >
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
-            <motion.div
-              className="relative w-full max-w-5xl"
-              initial={{ scale: 0.92, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black">
-                <iframe
-                  src={`https://www.playimdb.com/title/${movie.imdb_id}/`}
-                  title={title}
-                  allowFullScreen
-                  className="w-full h-full"
-                />
-              </div>
-              <button
-                onClick={() => setPlayOpen(false)}
-                className="absolute -top-10 right-0 text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-1"
-              >
-                ✕ Kapat
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

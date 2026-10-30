@@ -51,7 +51,7 @@ npm run build        # Production build to dist/
 npm run preview      # Preview production build
 npx wrangler deploy  # Cloudflare Workers static assets (see wrangler.jsonc)
 ```
-- **Cloudflare:** `src/worker.js` is the Worker entry (`env.ASSETS.fetch`). `wrangler.jsonc` publishes Vite's `dist/` as a static SPA (`not_found_handling: single-page-application`). The module exists so dashboard Variables & Secrets can be set; `VITE_*` values are still baked in at `vite build`. `functions/` is the Firebase/Express backend, not a Worker entry.
+- **Cloudflare:** `src/worker.js` serves `dist/` (`run_worker_first`) and injects dashboard `VITE_*` bindings into HTML as `window.__ENV__`. Client code reads that first, then `import.meta.env` for local Vite. `firebase-messaging-sw.js` placeholders are filled the same way. `functions/` is the Firebase/Express backend, not a Worker entry.
 
 ## Key Patterns & Conventions
 - **Animation:** Framer Motion `layoutId` for shared-element transitions (genre pills, nav indicator). `AnimatePresence mode="wait"` for page transitions.

@@ -1,6 +1,7 @@
 import { auth } from '../config/firebase';
+import { envValue } from '../config/env';
 
-const BASE = import.meta.env.VITE_NOTIFY_API_URL;
+const BASE = envValue('VITE_NOTIFY_API_URL');
 
 async function post(path, body) {
   if (!BASE) return;

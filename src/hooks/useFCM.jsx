@@ -3,9 +3,10 @@ import { getToken, onMessage } from 'firebase/messaging';
 import { doc, setDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { db, messagingPromise } from '../config/firebase';
+import { envValue } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
 
-const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+const VAPID_KEY = envValue('VITE_FIREBASE_VAPID_KEY');
 const DISMISSED_KEY = 'fcm_banner_dismissed';
 
 export function useFCM() {
