@@ -51,7 +51,7 @@ npm run build        # Production build to dist/
 npm run preview      # Preview production build
 npx wrangler deploy  # Cloudflare Workers static assets (see wrangler.jsonc)
 ```
-- **Cloudflare:** `wrangler.jsonc` publishes `dist/` as a static SPA (`not_found_handling: single-page-application`). `functions/` is the Firebase/Express backend, not a Worker entry.
+- **Cloudflare:** `src/worker.js` is the Worker entry (`env.ASSETS.fetch`). `wrangler.jsonc` publishes Vite's `dist/` as a static SPA (`not_found_handling: single-page-application`). The module exists so dashboard Variables & Secrets can be set; `VITE_*` values are still baked in at `vite build`. `functions/` is the Firebase/Express backend, not a Worker entry.
 
 ## Key Patterns & Conventions
 - **Animation:** Framer Motion `layoutId` for shared-element transitions (genre pills, nav indicator). `AnimatePresence mode="wait"` for page transitions.

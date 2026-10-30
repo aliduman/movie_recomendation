@@ -1,10 +1,12 @@
 {
-  // Static Vite SPA. Wrangler deploy uses this file and skips autoconfig,
-  // which parses vite.config.js with esprima and fails on import.meta.
+  // Worker module is required so Cloudflare allows Variables & Secrets.
+  // Assets stay in Vite's dist/ output; public/ is only copied into that build.
   "name": "movie-recomendation",
+  "main": "src/worker.js",
   "compatibility_date": "2026-10-30",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   }
 }
