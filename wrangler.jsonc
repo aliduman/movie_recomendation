@@ -1,0 +1,10 @@
+{
+  // Static Vite SPA. Wrangler deploy uses this file and skips autoconfig,
+  // which parses vite.config.js with esprima and fails on import.meta.
+  "name": "movie-recomendation",
+  "compatibility_date": "2026-10-30",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
